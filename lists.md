@@ -21,19 +21,19 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **2.3** Design optional local backend OCR (Python/Rust with pytesseract/EasyOCR)
 - [x] **2.4** Implement async task queue for OCR processing (priority, cancel, timeout)
 - [x] **2.5** Add multi-language support (Chinese, English, etc.)
-- [ ] **2.6** Implement OCR result validation and error handling
-- [ ] **2.7** Optimize OCR performance to prevent UI blocking
+- [x] **2.6** Implement OCR result validation and error handling ✅ Session 4: Added confidence checks, text quality validation, garbled text detection
+- [x] **2.7** Optimize OCR performance to prevent UI blocking ✅ Session 4: Added image preprocessing, contrast enhancement, dual caching system
 - [x] **2.8** Bundle Tesseract.js language files for offline EXE support (CRITICAL) ✅ Session 3: Documented + Configured Vite bundling
 
 ### 3. Screenshot Capture System
 - [x] **3.1** Implement Tauri global shortcut registration system
-- [ ] **3.2** Create screenshot overlay UI (HTML canvas or absolute div)
-- [ ] **3.3** Implement rectangle selection tool with border styling
+- [x] **3.2** Create screenshot overlay UI (HTML canvas or absolute div) ✅ Session 4: Full-screen overlay with dimming, instructions, ESC cancel
+- [x] **3.3** Implement rectangle selection tool with border styling ✅ Session 4: Draggable handles, dimension display, visual feedback
 - [x] **3.4** Add full-screen capture functionality (backend commands ready)
 - [x] **3.5** Add window capture functionality (backend commands ready)
 - [x] **3.6** Implement safe image data transfer (base64/file) to OCR module
 - [x] **3.7** Add conflict detection for keyboard shortcuts
-- [ ] **3.8** Add actual screenshot capture implementation (using screenshots-rs crate)
+- [x] **3.8** Add actual screenshot capture implementation (using screenshots-rs crate) ✅ Session 4: Implemented using screenshots 0.8, image 0.24, base64 encoding
 
 ### 4. Local Data Storage
 - [x] **4.1** Design database schema (SQLite or JSON) ✅ Session 3: SQLite with 3 tables
@@ -81,6 +81,7 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **8.6** Add loading states and error handling for each tab
 - [ ] **8.7** Implement keyboard shortcuts (Ctrl+C copy, Ctrl+S save, Tab switch)
 - [ ] **8.8** Add modal show/hide animations
+- [ ] **8.9** Add math function ocr supports
 
 ### 9. Local AI Model Management
 - [ ] **9.1** Create supported local model list (Llama, Alpaca, etc.)

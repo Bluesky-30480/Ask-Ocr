@@ -99,6 +99,9 @@ export class TesseractOcrService {
 
       const processingTime = Date.now() - startTime;
 
+      // Validate OCR result
+      const validationResult = this.validateOcrResult(result.data);
+      
       // Convert to our OcrResult format
       const ocrResult: OcrResult = {
         id: this.generateId(),
@@ -113,13 +116,83 @@ export class TesseractOcrService {
         aiAnswers: [],
       };
 
-      console.log(`OCR completed in ${processingTime}ms, confidence: ${result.data.confidence}%`);
+      // Log validation warnings
+      if (!validationResult.isValid) {
+        console.warn('OCR validation warnings:', validationResult.warnings);
+      }
+
+      console.log(
+        `OCR completed in ${processingTime}ms, confidence: ${result.data.confidence.toFixed(2)}%`,
+        validationResult.isValid ? '✓' : '⚠️'
+      );
 
       return ocrResult;
     } catch (error) {
       console.error('OCR recognition failed:', error);
-      throw new Error(`OCR failed: ${error}`);
+      
+      // Provide detailed error messages
+      let errorMessage = 'OCR failed: ';
+      if (error instanceof Error) {
+        errorMessage += error.message;
+      } else {
+        errorMessage += String(error);
+      }
+      
+      // Check for common error scenarios
+      if (errorMessage.includes('Worker')) {
+        errorMessage += ' (Worker initialization issue - try restarting)';
+      } else if (errorMessage.includes('language')) {
+        errorMessage += ' (Language data not available)';
+      } else if (errorMessage.includes('image')) {
+        errorMessage += ' (Invalid image format)';
+      }
+      
+      throw new Error(errorMessage);
     }
+  }
+
+  /**
+   * Validate OCR result quality and content
+   */
+  private validateOcrResult(data: any): { isValid: boolean; warnings: string[] } {
+    const warnings: string[] = [];
+    
+    // Check confidence score
+    if (data.confidence < 60) {
+      warnings.push(`Low confidence score: ${data.confidence.toFixed(2)}% (threshold: 60%)`);
+    }
+    
+    // Check if text is empty or very short
+    if (!data.text || data.text.trim().length === 0) {
+      warnings.push('No text detected in image');
+    } else if (data.text.trim().length < 3) {
+      warnings.push('Very short text detected - may be inaccurate');
+    }
+    
+    // Check for excessive special characters (potential gibberish)
+    const specialCharRatio = (data.text.match(/[^a-zA-Z0-9\s\u4e00-\u9fa5]/g) || []).length / data.text.length;
+    if (specialCharRatio > 0.5) {
+      warnings.push('High ratio of special characters - text may be garbled');
+    }
+    
+    // Check for repeated characters (potential OCR error)
+    const repeatedChars = data.text.match(/(.)\1{5,}/g);
+    if (repeatedChars) {
+      warnings.push(`Detected repeated characters: ${repeatedChars.join(', ')}`);
+    }
+    
+    // Validate word-level confidence if available
+    if (data.words && Array.isArray(data.words)) {
+      const lowConfidenceWords = data.words.filter((word: any) => word.confidence < 50);
+      if (lowConfidenceWords.length > data.words.length * 0.3) {
+        warnings.push(`${lowConfidenceWords.length} words have low confidence (<50%)`);
+      }
+    }
+    
+    return {
+      isValid: warnings.length === 0,
+      warnings
+    };
   }
 
   /**

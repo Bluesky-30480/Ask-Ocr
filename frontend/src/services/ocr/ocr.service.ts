@@ -19,6 +19,8 @@ export interface OcrServiceOptions {
 class OcrService {
   private cache: Map<string, OcrResult> = new Map();
   private maxCacheSize = 50;
+  private preprocessCache: Map<string, string> = new Map();
+  private isPreprocessingEnabled = true;
 
   /**
    * Perform OCR on an image with task queue management
@@ -98,7 +100,85 @@ class OcrService {
    */
   clearCache(): void {
     this.cache.clear();
+    this.preprocessCache.clear();
     console.log('OCR cache cleared');
+  }
+
+  /**
+   * Enable/disable image preprocessing
+   */
+  setPreprocessing(enabled: boolean): void {
+    this.isPreprocessingEnabled = enabled;
+    console.log(`Image preprocessing ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Preprocess image for better OCR results (optional optimization)
+   * This method can be called before processImage for manual control
+   */
+  async preprocessImage(imageData: string): Promise<string> {
+    // Check preprocess cache
+    const cached = this.preprocessCache.get(imageData);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      // Create an image element to load the base64 data
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageData;
+      });
+
+      // Create canvas for image processing
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Failed to get canvas context');
+      }
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // Get image data
+      const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageDataObj.data;
+
+      // Apply simple contrast enhancement
+      // Adjust contrast
+      const contrast = 1.2; // 20% contrast increase
+      const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = factor * (data[i] - 128) + 128; // R
+        data[i + 1] = factor * (data[i + 1] - 128) + 128; // G
+        data[i + 2] = factor * (data[i + 2] - 128) + 128; // B
+        // Alpha channel (i + 3) unchanged
+      }
+
+      ctx.putImageData(imageDataObj, 0, 0);
+
+      // Convert back to base64
+      const processedData = canvas.toDataURL('image/png');
+
+      // Cache the result (limit cache size)
+      if (this.preprocessCache.size >= 20) {
+        const firstKey = this.preprocessCache.keys().next().value;
+        if (firstKey) {
+          this.preprocessCache.delete(firstKey);
+        }
+      }
+      this.preprocessCache.set(imageData, processedData);
+
+      console.log('Image preprocessed for better OCR');
+      return processedData;
+    } catch (error) {
+      console.warn('Image preprocessing failed, using original:', error);
+      return imageData; // Fallback to original
+    }
   }
 
   /**

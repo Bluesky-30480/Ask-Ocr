@@ -3,6 +3,9 @@
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
+use screenshots::Screen;
+use image::DynamicImage;
+use base64::{Engine as _, engine::general_purpose};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScreenshotRegion {
@@ -35,40 +38,41 @@ pub enum ScreenshotMode {
 /// Capture full screen
 #[tauri::command]
 pub async fn capture_fullscreen(_app: AppHandle) -> Result<ScreenshotResult, String> {
-    // TODO: Implement actual screenshot capture
-    // For now, return a placeholder
-    // 
-    // Implementation notes:
-    // - Use screenshots-rs crate or similar for cross-platform capture
-    // - Convert captured image to base64
-    // - Handle multi-monitor scenarios
-    // - Consider DPI scaling on Windows
-    
-    Ok(ScreenshotResult {
-        success: false,
-        image_data: None,
-        image_path: None,
-        error: Some("Screenshot capture not yet implemented".to_string()),
-    })
+    match capture_screen_internal(None) {
+        Ok(image_data) => Ok(ScreenshotResult {
+            success: true,
+            image_data: Some(image_data),
+            image_path: None,
+            error: None,
+        }),
+        Err(e) => Ok(ScreenshotResult {
+            success: false,
+            image_data: None,
+            image_path: None,
+            error: Some(e),
+        }),
+    }
 }
 
 /// Capture active window
 #[tauri::command]
 pub async fn capture_window(_app: AppHandle) -> Result<ScreenshotResult, String> {
-    // TODO: Implement window capture
-    // 
-    // Implementation notes:
-    // - Get active window handle
-    // - Capture window contents
-    // - Handle window decorations (optional)
-    // - Support both Windows and macOS window APIs
-    
-    Ok(ScreenshotResult {
-        success: false,
-        image_data: None,
-        image_path: None,
-        error: Some("Window capture not yet implemented".to_string()),
-    })
+    // Note: screenshots-rs doesn't have native window capture
+    // We'll capture fullscreen - in production could use platform-specific APIs
+    match capture_screen_internal(None) {
+        Ok(image_data) => Ok(ScreenshotResult {
+            success: true,
+            image_data: Some(image_data),
+            image_path: None,
+            error: None,
+        }),
+        Err(e) => Ok(ScreenshotResult {
+            success: false,
+            image_data: None,
+            image_path: None,
+            error: Some(format!("Failed to capture window: {}", e)),
+        }),
+    }
 }
 
 /// Capture specific region
@@ -77,25 +81,25 @@ pub async fn capture_region(
     _app: AppHandle,
     region: ScreenshotRegion,
 ) -> Result<ScreenshotResult, String> {
-    // TODO: Implement region capture
-    // 
-    // Implementation notes:
-    // - Show selection UI overlay
-    // - Capture specified region
-    // - Handle coordinates across multiple monitors
-    // - Return base64 encoded image
-    
     println!(
         "Capturing region: x={}, y={}, w={}, h={}",
         region.x, region.y, region.width, region.height
     );
 
-    Ok(ScreenshotResult {
-        success: false,
-        image_data: None,
-        image_path: None,
-        error: Some("Region capture not yet implemented".to_string()),
-    })
+    match capture_screen_internal(Some(region)) {
+        Ok(image_data) => Ok(ScreenshotResult {
+            success: true,
+            image_data: Some(image_data),
+            image_path: None,
+            error: None,
+        }),
+        Err(e) => Ok(ScreenshotResult {
+            success: false,
+            image_data: None,
+            image_path: None,
+            error: Some(format!("Failed to capture region: {}", e)),
+        }),
+    }
 }
 
 /// Show screenshot overlay for region selection
@@ -126,4 +130,48 @@ pub async fn hide_screenshot_overlay(app: AppHandle) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+// ============================================================================
+// Internal Helper Functions
+// ============================================================================
+
+/// Internal function to capture screen
+fn capture_screen_internal(region: Option<ScreenshotRegion>) -> Result<String, String> {
+    // Get all screens
+    let screens = Screen::all().map_err(|e| format!("Failed to get screens: {}", e))?;
+    
+    // Get primary screen (first screen)
+    let screen = screens.first()
+        .ok_or_else(|| "No screens found".to_string())?;
+    
+    // Capture the screen
+    let image = screen.capture()
+        .map_err(|e| format!("Failed to capture screen: {}", e))?;
+    
+    // Convert to DynamicImage (image is already ImageBuffer<Rgba<u8>, Vec<u8>>)
+    let mut dynamic_image = DynamicImage::ImageRgba8(image);
+    
+    // Crop to region if specified
+    if let Some(reg) = region {
+        dynamic_image = dynamic_image.crop(
+            reg.x as u32,
+            reg.y as u32,
+            reg.width,
+            reg.height
+        );
+    }
+    
+    // Convert to PNG bytes
+    let mut png_bytes: Vec<u8> = Vec::new();
+    dynamic_image.write_to(
+        &mut std::io::Cursor::new(&mut png_bytes),
+        image::ImageOutputFormat::Png
+    ).map_err(|e| format!("Failed to encode PNG: {}", e))?;
+    
+    // Convert to base64
+    let base64_data = general_purpose::STANDARD.encode(&png_bytes);
+    let data_url = format!("data:image/png;base64,{}", base64_data);
+    
+    Ok(data_url)
 }
