@@ -55,7 +55,8 @@ frontend/
 │   │   │   ├── index.ts      # Service exports
 │   │   │   ├── shortcut-manager.service.ts  # Global shortcut manager
 │   │   │   └── screenshot-manager.service.ts # Screenshot capture
-│   │   └── task-queue.service.ts # Async task queue manager
+│   │   ├── task-queue.service.ts # Async task queue manager
+│   │   └── database.service.ts   # Database operations (NEW)
 │   ├── App.css               # App component styles
 │   ├── App.tsx               # Main App component
 │   ├── index.css             # Global styles
@@ -224,6 +225,33 @@ frontend/
 - Exports managers and related types
 - Clean import interface for components
 
+#### `frontend/src/services/database.service.ts` (NEW)
+**Purpose**: Frontend interface for database operations via Tauri backend.
+- **Features**:
+  - Type-safe wrappers for all database commands
+  - Error handling and logging
+  - Helper methods for common operations
+- **OCR Record Operations**:
+  - `createOcrRecord(record)`: Save OCR result to database
+  - `getOcrRecord(id)`: Retrieve specific record
+  - `getAllOcrRecords(limit, offset)`: Get paginated history
+  - `updateOcrRecord(id, record)`: Update summary, tags, AI answers
+  - `deleteOcrRecord(id)`: Remove record
+- **Model Record Operations**:
+  - `createModelRecord(record)`: Register installed model
+  - `getAllModelRecords()`: List all models
+  - `deleteModelRecord(id)`: Remove model registration
+- **Settings Operations**:
+  - `setSetting(setting)`: Save or update setting (upsert)
+  - `getSetting(key)`: Retrieve specific setting
+  - `getAllSettings(category?)`: Get all or filtered settings
+  - `deleteSetting(key)`: Remove setting
+- **Helpers**:
+  - `now()`: Get current timestamp
+  - `createOcrRecordTemplate()`: Create record with defaults
+  - `createSettingTemplate()`: Create setting with defaults
+- **Export**: Singleton `databaseService`
+
 ---
 
 ## ⚙️ Backend Directory (`src-tauri/`)
@@ -239,6 +267,8 @@ src-tauri/
 │   │   └── mod.rs            # Shortcut registration and handling
 │   ├── screenshot/           # Screenshot capture module
 │   │   └── mod.rs            # Screenshot commands
+│   ├── database/             # SQLite database module (NEW)
+│   │   └── mod.rs            # Database schema and CRUD operations
 │   └── main.rs               # Main Rust entry point
 ├── target/                    # Compiled Rust binaries (not in git)
 ├── icons/                     # Application icons (multi-platform)
@@ -301,6 +331,22 @@ src-tauri/
 - **Returns**: ScreenshotResult with base64 image data
 - **TODO**: Integrate screenshots-rs crate for actual capture
 
+#### `src-tauri/src/database/mod.rs` (NEW)
+**Purpose**: SQLite database module for local data storage.
+- **Database**: Single SQLite file at `%APPDATA%/AskOCR/askocr.db`
+- **Tables**:
+  - `ocr_record`: Stores all OCR results with text, language, timestamps, AI answers
+  - `model_record`: Tracks installed AI models with paths, versions, hashes
+  - `settings`: Key-value store for app preferences (shortcuts, API keys, theme)
+- **Indexes**: Performance indexes on timestamp, language, and setting keys
+- **Commands** (15 total):
+  - OCR Records: create, get, get_all (with pagination), update, delete
+  - Model Records: create, get_all, delete
+  - Settings: set (upsert), get, get_all (with category filter), delete
+- **Data Models**: OcrRecord, ModelRecord, Setting with full field definitions
+- **Thread Safety**: Uses Mutex for connection safety
+- **Auto-Initialization**: Creates tables and indexes on first run
+
 #### `src-tauri/Cargo.toml`
 **Purpose**: Rust package manifest defining dependencies and metadata.
 - **Package Info**: Name, version, description, license
@@ -308,6 +354,8 @@ src-tauri/
   - `tauri`: Core Tauri framework with extensive feature flags
   - `serde`: Serialization/deserialization for data transfer
   - `serde_json`: JSON support
+  - `rusqlite`: SQLite database with bundled SQLite engine (NEW)
+  - `chrono`: Date and time handling with serde support (NEW)
 - **Feature Flags Enabled**:
   - `dialog-all`: File dialogs (open, save)
   - `fs-all`: File system operations

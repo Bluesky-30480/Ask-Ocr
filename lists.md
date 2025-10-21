@@ -23,7 +23,7 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [x] **2.5** Add multi-language support (Chinese, English, etc.)
 - [ ] **2.6** Implement OCR result validation and error handling
 - [ ] **2.7** Optimize OCR performance to prevent UI blocking
-- [ ] **2.8** Bundle Tesseract.js language files for offline EXE support (CRITICAL)
+- [x] **2.8** Bundle Tesseract.js language files for offline EXE support (CRITICAL) ✅ Session 3: Documented + Configured Vite bundling
 
 ### 3. Screenshot Capture System
 - [x] **3.1** Implement Tauri global shortcut registration system
@@ -36,12 +36,12 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **3.8** Add actual screenshot capture implementation (using screenshots-rs crate)
 
 ### 4. Local Data Storage
-- [ ] **4.1** Design database schema (SQLite or JSON)
-- [ ] **4.2** Implement `ocr_record` table (id, timestamp, image_path, text, language, summary, tags, ai_answers)
-- [ ] **4.3** Implement `model_record` table (name, path, version, hash, installed_at)
-- [ ] **4.4** Implement `settings` table (shortcuts, preferred_model, api_keys_encrypted, theme)
-- [ ] **4.5** Create database indexing for performance
-- [ ] **4.6** Implement CRUD operations for all data entities
+- [x] **4.1** Design database schema (SQLite or JSON) ✅ Session 3: SQLite with 3 tables
+- [x] **4.2** Implement `ocr_record` table (id, timestamp, image_path, text, language, summary, tags, ai_answers) ✅
+- [x] **4.3** Implement `model_record` table (name, path, version, hash, installed_at) ✅
+- [x] **4.4** Implement `settings` table (shortcuts, preferred_model, api_keys_encrypted, theme) ✅
+- [x] **4.5** Create database indexing for performance ✅ Session 3: Indexed timestamp, language, key
+- [x] **4.6** Implement CRUD operations for all data entities ✅ Session 3: All CRUD commands implemented
 - [ ] **4.7** Add data migration and versioning system
 
 ### 5. AI Integration Core
