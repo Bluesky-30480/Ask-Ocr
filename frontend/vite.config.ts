@@ -1,10 +1,28 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Copy Tesseract.js worker and core files for offline OCR
+    viteStaticCopy({
+      targets: [
+        // Copy worker files
+        {
+          src: 'node_modules/tesseract.js/dist/worker.min.js*',
+          dest: 'tessdata'
+        },
+        // Copy core WASM file
+        {
+          src: 'node_modules/tesseract.js-core/tesseract-core.wasm.js',
+          dest: ''
+        }
+      ]
+    })
+  ],
   
   // Tauri expects a fixed port, fail if that port is not available
   server: {

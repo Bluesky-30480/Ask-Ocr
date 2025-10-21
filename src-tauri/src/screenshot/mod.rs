@@ -2,7 +2,7 @@
 // Handles screen capture functionality for OCR
 
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScreenshotRegion {
@@ -20,6 +20,7 @@ pub struct ScreenshotResult {
     pub error: Option<String>,
 }
 
+#[allow(dead_code)] // Will be used for screenshot mode selection UI
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ScreenshotMode {

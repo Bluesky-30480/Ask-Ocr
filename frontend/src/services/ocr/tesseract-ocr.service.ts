@@ -4,7 +4,8 @@
  * Supports multiple languages and progress tracking
  */
 
-import Tesseract, { createWorker, Worker, RecognizeResult } from 'tesseract.js';
+import { createWorker, PSM } from 'tesseract.js';
+import type { Worker, RecognizeResult } from 'tesseract.js';
 import type { OcrResult, OcrRequest } from '@shared/types';
 
 export interface OcrProgress {
@@ -38,16 +39,12 @@ export class TesseractOcrService {
         await this.worker.terminate();
       }
 
-      // Create new worker
-      this.worker = await createWorker({
-        logger: (m: any) => {
+      // Create new worker with language and logger
+      this.worker = await createWorker(language, undefined, {
+        logger: (m) => {
           console.log('[Tesseract]', m);
         },
       });
-
-      // Load and initialize language
-      await this.worker.loadLanguage(language);
-      await this.worker.initialize(language);
 
       this.isInitialized = true;
       this.currentLanguage = language;
@@ -76,8 +73,9 @@ export class TesseractOcrService {
     }
 
     // Switch language if needed
-    if (options?.language && options.language !== this.currentLanguage) {
-      await this.initialize(options.language);
+    if (options?.language && options.language !== this.currentLanguage && this.worker) {
+      await this.worker.reinitialize(options.language);
+      this.currentLanguage = options.language;
     }
 
     if (!this.worker) {
@@ -90,7 +88,7 @@ export class TesseractOcrService {
       // Set up progress tracking
       if (onProgress) {
         this.worker.setParameters({
-          tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+          tessedit_pageseg_mode: PSM.AUTO,
         });
       }
 

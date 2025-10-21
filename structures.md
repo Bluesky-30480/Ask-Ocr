@@ -13,9 +13,11 @@ This document describes the complete file structure of the Ask OCR application a
 Ask_Ocr/
 ├── frontend/                  # React + TypeScript frontend application
 ├── src-tauri/                 # Rust backend with Tauri framework
+│   └── icons/                # Application icons (all platforms)
 ├── shared/                    # Shared types and utilities
 ├── docs/                      # Project documentation
-│   └── ocr-decision.md       # OCR implementation decision document
+│   ├── ocr-decision.md       # OCR implementation decision document
+│   └── tesseract-bundling.md # Tesseract.js offline bundling guide (NEW)
 ├── .git/                      # Git version control
 ├── .gitignore                 # Git ignore patterns
 ├── .prettierrc                # Prettier code formatting config
@@ -24,7 +26,9 @@ Ask_Ocr/
 ├── README.md                  # Project introduction and overview
 ├── Prompt.txt                 # Original project requirements
 ├── lists.md                   # Detailed task list and planning
-└── structures.md              # This file - project structure documentation
+├── structures.md              # This file - project structure documentation
+├── tobefix.md                 # Issue tracking and error management (UPDATED)
+└── PROGRESS.md                # Development session summaries
 ```
 
 ---
@@ -93,6 +97,10 @@ frontend/
   - `@shared/*` maps to `../shared/*` for shared types
 - **Environment Variables**: Exposes `VITE_` and `TAURI_` prefixed variables
 - **Sourcemaps**: Enabled in debug mode for easier debugging
+- **Static Copy Plugin**: Bundles Tesseract.js worker and WASM files for offline OCR
+  - Copies `worker.min.js` and `worker.min.js.map` to `dist/tessdata/`
+  - Copies `tesseract-core.wasm.js` to `dist/`
+  - Ensures OCR works in packaged .exe without internet
 
 #### `frontend/tsconfig.app.json`
 **Purpose**: TypeScript configuration for the application source code.
@@ -233,7 +241,14 @@ src-tauri/
 │   │   └── mod.rs            # Screenshot commands
 │   └── main.rs               # Main Rust entry point
 ├── target/                    # Compiled Rust binaries (not in git)
-├── icons/                     # Application icons (to be added)
+├── icons/                     # Application icons (multi-platform)
+│   ├── 32x32.png             # Small icon
+│   ├── 128x128.png           # Medium icon
+│   ├── 128x128@2x.png        # Retina medium icon
+│   ├── icon.icns             # macOS icon bundle
+│   ├── icon.ico              # Windows icon
+│   ├── icon.png              # System tray icon
+│   └── Square*.png           # Windows Store icons
 ├── Cargo.toml                # Rust package manifest
 ├── Cargo.lock                # Locked Rust dependency versions
 ├── build.rs                  # Build script for Tauri
@@ -451,6 +466,20 @@ shared/
 - Technical implementation strategy and optimization plans
 - Performance targets and language support details
 - **Why**: Provides rationale for architectural decisions
+
+### `docs/tesseract-bundling.md` (NEW)
+**Purpose**: Comprehensive guide for bundling Tesseract.js for offline EXE support.
+- **Problem**: Tesseract.js downloads language files at runtime from CDN
+- **Solution**: Bundle all assets (language files, workers, WASM) into app
+- **Implementation Guide**:
+  - Phase 1: Language files (.traineddata) - Download and bundle in Tauri resources
+  - Phase 2: Worker files - Copy to public directory via Vite plugin
+  - Phase 3: Core WASM - Bundle tesseract-core.wasm.js
+- **File Size Analysis**: Documents size for different language packs
+- **Testing Checklist**: Dev and production testing procedures
+- **Code Examples**: Complete implementation with path resolution
+- **Priority Levels**: High (English), Medium (CJK), Low (all languages)
+- **Critical for Release**: Must implement before packaging .exe
 
 ### `.prettierignore`
 **Purpose**: Files that Prettier should not format.

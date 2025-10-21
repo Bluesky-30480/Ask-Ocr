@@ -4,7 +4,8 @@
  */
 
 import { invoke } from '@tauri-apps/api/tauri';
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { listen } from '@tauri-apps/api/event';
+import type { UnlistenFn } from '@tauri-apps/api/event';
 import type { ScreenshotRegion, ScreenshotResult } from '@shared/types';
 
 /**
