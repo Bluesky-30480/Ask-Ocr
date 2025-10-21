@@ -8,12 +8,12 @@ Based on the comprehensive project requirements, tasks are organized into four p
 ## 🔴 CORE (Highest Priority - Foundation)
 
 ### 1. Project Architecture & Setup
-- [ ] **1.1** Initialize Tauri + React/Vue3 project structure
-- [ ] **1.2** Set up project directory structure (frontend, backend, shared types, configs)
-- [ ] **1.3** Configure build pipeline for Windows and macOS
-- [ ] **1.4** Set up TypeScript configuration with strict type checking
-- [ ] **1.5** Configure linting (ESLint) and code formatting (Prettier)
-- [ ] **1.6** Set up Git repository with .gitignore for sensitive data
+- [x] **1.1** Initialize Tauri + React/Vue3 project structure
+- [x] **1.2** Set up project directory structure (frontend, backend, shared types, configs)
+- [x] **1.3** Configure build pipeline for Windows and macOS
+- [x] **1.4** Set up TypeScript configuration with strict type checking
+- [x] **1.5** Configure linting (ESLint) and code formatting (Prettier)
+- [x] **1.6** Set up Git repository with .gitignore for sensitive data
 
 ### 2. OCR Core Implementation
 - [ ] **2.1** Evaluate and choose OCR approach (tesseract.js vs local backend)
