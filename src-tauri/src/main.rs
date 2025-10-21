@@ -57,6 +57,9 @@ fn main() {
             database::get_setting,
             database::get_all_settings,
             database::delete_setting,
+            // Database commands - Migrations
+            database::get_database_version,
+            database::get_migration_history,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

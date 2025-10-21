@@ -50,6 +50,12 @@ export interface Setting {
   updatedAt: number;
 }
 
+export interface Migration {
+  version: number;
+  name: string;
+  appliedAt: number;
+}
+
 // ============================================================================
 // Database Service Class
 // ============================================================================
@@ -214,6 +220,24 @@ export class DatabaseService {
       createdAt: now,
       updatedAt: now,
     };
+  }
+
+  // ============================================================================
+  // Migration Methods
+  // ============================================================================
+
+  /**
+   * Get current database schema version
+   */
+  async getDatabaseVersion(): Promise<number> {
+    return invoke<number>('get_database_version');
+  }
+
+  /**
+   * Get migration history
+   */
+  async getMigrationHistory(): Promise<Migration[]> {
+    return invoke<Migration[]>('get_migration_history');
   }
 }
 

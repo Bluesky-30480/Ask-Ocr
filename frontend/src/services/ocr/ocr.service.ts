@@ -29,9 +29,19 @@ class OcrService {
     imageData: string | File,
     options: OcrServiceOptions & Partial<OcrRequest> = {}
   ): Promise<OcrResult> {
+    // Preprocess image if enabled and imageData is base64 string
+    let processedImageData = imageData;
+    if (this.isPreprocessingEnabled && typeof imageData === 'string' && imageData.startsWith('data:image')) {
+      try {
+        processedImageData = await this.preprocessImage(imageData);
+      } catch (error) {
+        console.warn('Image preprocessing failed, using original:', error);
+      }
+    }
+
     // Check cache first
     if (options.useCache !== false) {
-      const cacheKey = this.getCacheKey(imageData);
+      const cacheKey = this.getCacheKey(processedImageData);
       const cached = this.cache.get(cacheKey);
       if (cached) {
         console.log('OCR result retrieved from cache');
@@ -49,11 +59,11 @@ class OcrService {
         }
 
         // Perform OCR
-        const ocrResult = await tesseractOcr.recognize(imageData, options);
+        const ocrResult = await tesseractOcr.recognize(processedImageData, options);
 
         // Cache result
         if (options.useCache !== false) {
-          this.addToCache(this.getCacheKey(imageData), ocrResult);
+          this.addToCache(this.getCacheKey(processedImageData), ocrResult);
         }
 
         return ocrResult;

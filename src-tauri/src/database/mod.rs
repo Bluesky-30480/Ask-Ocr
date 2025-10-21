@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::AppHandle;
+use chrono::Utc;
+
+// Current database schema version
+const CURRENT_DB_VERSION: i32 = 1;
 
 // Database connection wrapper
 pub struct Database {
@@ -13,11 +17,38 @@ pub struct Database {
 }
 
 impl Database {
-    /// Initialize database with schema
+    /// Initialize database with schema and run migrations
     pub fn new(db_path: PathBuf) -> SqlResult<Self> {
         let conn = Connection::open(db_path)?;
         
-        // Create tables
+        // Create migrations table first
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS schema_migrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                version INTEGER NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                applied_at INTEGER NOT NULL
+            )",
+            [],
+        )?;
+
+        // Get current database version
+        let db_version: i32 = conn
+            .query_row(
+                "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap_or(0);
+
+        println!("Current database version: {}", db_version);
+
+        // Apply migrations if needed
+        if db_version < CURRENT_DB_VERSION {
+            Self::apply_migrations(&conn, db_version)?;
+        }
+        
+        // Create tables (initial schema - migration 1)
         conn.execute(
             "CREATE TABLE IF NOT EXISTS ocr_record (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,11 +119,81 @@ impl Database {
             conn: Mutex::new(conn),
         })
     }
+
+    /// Apply database migrations
+    fn apply_migrations(conn: &Connection, from_version: i32) -> SqlResult<()> {
+        let now = Utc::now().timestamp();
+
+        // Migration 1: Initial schema (already created above)
+        if from_version < 1 {
+            // Record migration
+            conn.execute(
+                "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, ?3)",
+                params![1, "initial_schema", now],
+            )?;
+            println!("Applied migration 1: initial_schema");
+        }
+
+        // Future migrations can be added here
+        // Example:
+        // if from_version < 2 {
+        //     conn.execute("ALTER TABLE ocr_record ADD COLUMN new_field TEXT", [])?;
+        //     conn.execute(
+        //         "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?1, ?2, ?3)",
+        //         params![2, "add_new_field", now],
+        //     )?;
+        //     println!("Applied migration 2: add_new_field");
+        // }
+
+        Ok(())
+    }
+
+    /// Get current database version
+    pub fn get_version(&self) -> Result<i32, String> {
+        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let version: i32 = conn
+            .query_row(
+                "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
+                [],
+                |row| row.get(0),
+            )
+            .map_err(|e| e.to_string())?;
+        Ok(version)
+    }
+
+    /// Get migration history
+    pub fn get_migrations(&self) -> Result<Vec<Migration>, String> {
+        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let mut stmt = conn
+            .prepare("SELECT version, name, applied_at FROM schema_migrations ORDER BY version ASC")
+            .map_err(|e| e.to_string())?;
+
+        let migrations = stmt
+            .query_map([], |row| {
+                Ok(Migration {
+                    version: row.get(0)?,
+                    name: row.get(1)?,
+                    applied_at: row.get(2)?,
+                })
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
+
+        Ok(migrations)
+    }
 }
 
 // ============================================================================
 // Data Models
 // ============================================================================
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Migration {
+    pub version: i32,
+    pub name: String,
+    pub applied_at: i64,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OcrRecord {
@@ -509,4 +610,18 @@ pub fn get_database_path(app: &AppHandle) -> PathBuf {
         .expect("Failed to create app data directory");
     
     app_data_dir.join("askocr.db")
+}
+
+// ============================================================================
+// Migration Commands
+// ============================================================================
+
+#[tauri::command]
+pub fn get_database_version(state: tauri::State<Database>) -> Result<i32, String> {
+    state.get_version()
+}
+
+#[tauri::command]
+pub fn get_migration_history(state: tauri::State<Database>) -> Result<Vec<Migration>, String> {
+    state.get_migrations()
 }
