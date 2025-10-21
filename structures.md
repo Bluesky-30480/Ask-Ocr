@@ -14,6 +14,8 @@ Ask_Ocr/
 ├── frontend/                  # React + TypeScript frontend application
 ├── src-tauri/                 # Rust backend with Tauri framework
 ├── shared/                    # Shared types and utilities
+├── docs/                      # Project documentation
+│   └── ocr-decision.md       # OCR implementation decision document
 ├── .git/                      # Git version control
 ├── .gitignore                 # Git ignore patterns
 ├── .prettierrc                # Prettier code formatting config
@@ -40,6 +42,12 @@ frontend/
 ├── src/                       # Source code directory
 │   ├── assets/               # Images, fonts, and other assets
 │   │   └── react.svg         # React logo
+│   ├── services/             # Business logic services
+│   │   ├── ocr/              # OCR-related services
+│   │   │   ├── index.ts      # OCR service exports
+│   │   │   ├── ocr.service.ts           # OCR facade with caching
+│   │   │   └── tesseract-ocr.service.ts # Tesseract.js implementation
+│   │   └── task-queue.service.ts # Async task queue manager
 │   ├── App.css               # App component styles
 │   ├── App.tsx               # Main App component
 │   ├── index.css             # Global styles
@@ -92,13 +100,75 @@ frontend/
 
 #### `frontend/package.json`
 **Purpose**: Defines frontend dependencies, scripts, and project metadata.
-- **Dependencies**: React 18, Tauri API client
+- **Dependencies**: 
+  - React 19: UI framework
+  - Tauri API client: Desktop integration
+  - Tesseract.js: OCR engine
 - **Dev Dependencies**: TypeScript, Vite, ESLint, Prettier
 - **Scripts**: 
   - `dev`: Start development server
   - `build`: Production build
   - `lint`: Run ESLint
   - `format`: Format code with Prettier
+
+#### `frontend/src/services/ocr/tesseract-ocr.service.ts`
+**Purpose**: Tesseract.js OCR implementation using Web Workers.
+- **Features**:
+  - Non-blocking OCR processing (runs in Web Worker)
+  - Multi-language support (English, Chinese, Spanish, etc.)
+  - Progress tracking and confidence scores
+  - Language detection capability
+  - Worker lifecycle management
+- **Main Methods**:
+  - `initialize(language)`: Load OCR worker with specific language
+  - `recognize(imageData, options)`: Perform OCR on image
+  - `detectLanguage(imageData)`: Auto-detect text language
+  - `getSupportedLanguages()`: List available languages
+  - `terminate()`: Cleanup worker resources
+- **Performance**: 2-8 seconds for typical screenshots
+- **Export**: Singleton instance `tesseractOcr`
+
+#### `frontend/src/services/ocr/ocr.service.ts`
+**Purpose**: High-level OCR service facade with caching and task management.
+- **Features**:
+  - LRU caching of OCR results (up to 50 entries)
+  - Integration with task queue for controlled concurrency
+  - Automatic cache key generation from image data
+  - Queue status monitoring
+  - Task cancellation support
+- **Main Methods**:
+  - `processImage(imageData, options)`: OCR with caching and queuing
+  - `cancelPending()`: Cancel all queued OCR tasks
+  - `clearCache()`: Remove cached results
+  - `getCacheStats()`: Get cache usage information
+  - `cleanup()`: Full resource cleanup
+- **Why**: Prevents memory issues and UI blocking from multiple concurrent OCR operations
+- **Export**: Singleton instance `ocrService`
+
+#### `frontend/src/services/task-queue.service.ts`
+**Purpose**: Priority-based async task queue with cancellation and timeout support.
+- **Features**:
+  - Configurable concurrency limit (default: 2 for OCR)
+  - Priority-based task scheduling (higher priority first)
+  - Task cancellation via AbortSignal
+  - Automatic timeout handling
+  - Task status tracking (pending/running/completed/failed/cancelled)
+  - Queue statistics and monitoring
+- **Main Methods**:
+  - `add(type, executor, options)`: Add task to queue
+  - `cancel(taskId)`: Cancel specific task
+  - `cancelByType(type)`: Cancel all tasks of a type
+  - `getStatus()`: Get queue statistics
+  - `clear()`: Clear all pending tasks
+- **Instances**:
+  - `ocrTaskQueue`: 2 concurrent, 60s timeout (for OCR operations)
+  - `generalTaskQueue`: 4 concurrent, 30s timeout (for other tasks)
+- **Why**: Prevents browser from freezing when processing multiple OCR requests
+
+#### `frontend/src/services/ocr/index.ts`
+**Purpose**: Central export point for OCR services.
+- Exports all OCR-related services and types
+- Provides clean public API for components to import
 
 ---
 
@@ -292,6 +362,15 @@ shared/
   - Trailing commas: ES5 compatible
   - Auto line endings for cross-platform
 
+### `docs/ocr-decision.md`
+**Purpose**: Documents the OCR implementation approach decision.
+- Compares Tesseract.js vs local backend OCR
+- Evaluation criteria: performance, accuracy, setup complexity, size
+- **Decision**: Hybrid approach - start with Tesseract.js, add optional local backend later
+- Technical implementation strategy and optimization plans
+- Performance targets and language support details
+- **Why**: Provides rationale for architectural decisions
+
 ### `.prettierignore`
 **Purpose**: Files that Prettier should not format.
 - Ignores: node_modules, dist, build outputs, logs, Tauri/Rust artifacts
@@ -420,8 +499,12 @@ npm run tauri:build
 
 ### Immediate Tasks (From lists.md - CORE)
 1. ✅ Project Architecture & Setup - **COMPLETED**
-2. ⏳ OCR Core Implementation - **NEXT**
-3. ⏳ Screenshot Capture System
+2. 🔄 OCR Core Implementation - **IN PROGRESS**
+   - ✅ OCR approach evaluation and documentation
+   - ✅ Tesseract.js service implementation
+   - ✅ Async task queue system
+   - ⏳ Language file bundling for offline support
+3. ⏳ Screenshot Capture System - **NEXT**
 4. ⏳ Local Data Storage
 5. ⏳ AI Integration Core
 6. ⏳ Security & Privacy
@@ -429,14 +512,24 @@ npm run tauri:build
 
 ### Current Status
 - ✅ Git repository initialized
-- ✅ Project structure created
-- ✅ Tauri + React configured
-- ✅ TypeScript strict mode enabled
-- ✅ Build pipeline configured
-- ✅ Shared types defined
-- ⏳ Frontend UI pending
-- ⏳ Backend commands pending
-- ⏳ OCR implementation pending
+- ✅ Project structure created (frontend/, src-tauri/, shared/, docs/)
+- ✅ Tauri + React configured with proper build pipeline
+- ✅ TypeScript strict mode enabled with path aliases
+- ✅ Build pipeline configured for Windows/macOS
+- ✅ Shared types defined (OCR, AI, Settings, etc.)
+- ✅ OCR service layer implemented (Tesseract.js)
+- ✅ Task queue system for async operations
+- ✅ LRU caching for OCR results
+- ⚠️ TypeScript warnings to fix (see tobefix.md)
+- ⏳ Frontend UI components pending
+- ⏳ Backend Tauri commands pending
+- ⏳ Screenshot capture pending
+- ⏳ Global shortcuts pending
+
+### Important Notes for Production
+- 🔴 **Critical**: Must bundle Tesseract.js language files for offline EXE
+- 🔴 **Critical**: Configure worker paths for packaged environment
+- ⚠️ **Important**: Test on clean machine without dev dependencies
 
 ---
 

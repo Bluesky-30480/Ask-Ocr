@@ -16,13 +16,14 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [x] **1.6** Set up Git repository with .gitignore for sensitive data
 
 ### 2. OCR Core Implementation
-- [ ] **2.1** Evaluate and choose OCR approach (tesseract.js vs local backend)
-- [ ] **2.2** Implement frontend OCR with tesseract.js (JavaScript, no dependencies)
+- [x] **2.1** Evaluate and choose OCR approach (tesseract.js vs local backend)
+- [x] **2.2** Implement frontend OCR with tesseract.js (JavaScript, no dependencies)
 - [ ] **2.3** Design optional local backend OCR (Python/Rust with pytesseract/EasyOCR)
-- [ ] **2.4** Implement async task queue for OCR processing (priority, cancel, timeout)
-- [ ] **2.5** Add multi-language support (Chinese, English, etc.)
+- [x] **2.4** Implement async task queue for OCR processing (priority, cancel, timeout)
+- [x] **2.5** Add multi-language support (Chinese, English, etc.)
 - [ ] **2.6** Implement OCR result validation and error handling
 - [ ] **2.7** Optimize OCR performance to prevent UI blocking
+- [ ] **2.8** Bundle Tesseract.js language files for offline EXE support (CRITICAL)
 
 ### 3. Screenshot Capture System
 - [ ] **3.1** Implement Tauri global shortcut registration system
