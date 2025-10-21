@@ -47,6 +47,10 @@ frontend/
 │   │   │   ├── index.ts      # OCR service exports
 │   │   │   ├── ocr.service.ts           # OCR facade with caching
 │   │   │   └── tesseract-ocr.service.ts # Tesseract.js implementation
+│   │   ├── shortcuts/        # Shortcut and screenshot services
+│   │   │   ├── index.ts      # Service exports
+│   │   │   ├── shortcut-manager.service.ts  # Global shortcut manager
+│   │   │   └── screenshot-manager.service.ts # Screenshot capture
 │   │   └── task-queue.service.ts # Async task queue manager
 │   ├── App.css               # App component styles
 │   ├── App.tsx               # Main App component
@@ -170,6 +174,48 @@ frontend/
 - Exports all OCR-related services and types
 - Provides clean public API for components to import
 
+#### `frontend/src/services/shortcuts/shortcut-manager.service.ts`
+**Purpose**: Frontend interface for global keyboard shortcut management.
+- **Features**:
+  - Register/unregister shortcuts via Tauri backend
+  - Listen for shortcut trigger events
+  - Callback system for shortcut actions
+  - Default shortcut registration (Ctrl+Shift+S for screenshot, etc.)
+  - Conflict detection before registration
+- **Main Methods**:
+  - `initialize()`: Setup event listeners
+  - `register(id, accelerator, callback)`: Register new shortcut
+  - `unregister(id)`: Remove shortcut
+  - `getRegistered()`: List all shortcuts
+  - `isAvailable(accelerator)`: Check if key combo is free
+  - `update(id, newAccelerator)`: Change shortcut binding
+  - `registerDefaults(callbacks)`: Setup default app shortcuts
+  - `cleanup()`: Remove all shortcuts and listeners
+- **Export**: Singleton `shortcutManager`
+- **Events**: Listens for `shortcut-triggered` from Rust backend
+
+#### `frontend/src/services/shortcuts/screenshot-manager.service.ts`
+**Purpose**: Frontend interface for screenshot capture operations.
+- **Features**:
+  - Capture full screen, window, or region
+  - Show/hide screenshot selection overlay
+  - Event-based region selection
+  - Base64 image data handling
+- **Main Methods**:
+  - `captureFullScreen()`: Capture entire screen
+  - `captureWindow()`: Capture active window
+  - `captureRegion(region)`: Capture specific area
+  - `showOverlay(callback)`: Display selection UI
+  - `hideOverlay()`: Close selection UI
+  - `cleanup()`: Remove event listeners
+- **Export**: Singleton `screenshotManager`
+- **Returns**: ScreenshotResult with base64 image or error
+
+#### `frontend/src/services/shortcuts/index.ts`
+**Purpose**: Central export point for shortcut and screenshot services.
+- Exports managers and related types
+- Clean import interface for components
+
 ---
 
 ## ⚙️ Backend Directory (`src-tauri/`)
@@ -181,6 +227,10 @@ The backend is built with **Rust** and the **Tauri framework** for native deskto
 ```
 src-tauri/
 ├── src/                       # Rust source code
+│   ├── shortcuts/            # Global shortcut management
+│   │   └── mod.rs            # Shortcut registration and handling
+│   ├── screenshot/           # Screenshot capture module
+│   │   └── mod.rs            # Screenshot commands
 │   └── main.rs               # Main Rust entry point
 ├── target/                    # Compiled Rust binaries (not in git)
 ├── icons/                     # Application icons (to be added)
@@ -195,15 +245,46 @@ src-tauri/
 #### `src-tauri/src/main.rs`
 **Purpose**: Main Rust application entry point.
 - Initializes the Tauri application
-- Registers command handlers that can be called from frontend
-- **Current Commands**:
-  - `greet(name)`: Example command that returns a greeting message
-- **Future Features**:
-  - OCR processing commands
-  - Screenshot capture functionality
-  - File system operations
-  - Global shortcut registration
-  - System tray integration
+- Manages application state (ShortcutState)
+- Registers all command handlers that can be called from frontend
+- **Registered Commands**:
+  - `greet(name)`: Example greeting command
+  - Shortcut commands: register, unregister, get_registered, etc.
+  - Screenshot commands: capture_fullscreen, capture_window, capture_region, etc.
+- **Modules**: shortcuts, screenshot
+
+#### `src-tauri/src/shortcuts/mod.rs`
+**Purpose**: Global keyboard shortcut management.
+- **Features**:
+  - Register/unregister global shortcuts via OS APIs
+  - Shortcut conflict detection (checks if already registered)
+  - Maintain shortcut state across app lifecycle
+  - Emit events to frontend when shortcuts are triggered
+- **Commands**:
+  - `register_shortcut`: Register new global shortcut
+  - `unregister_shortcut`: Remove specific shortcut
+  - `unregister_all_shortcuts`: Clear all shortcuts
+  - `get_registered_shortcuts`: List active shortcuts
+  - `is_shortcut_available`: Check if accelerator is free
+  - `update_shortcut`: Change shortcut key binding
+- **State**: Uses Mutex-protected HashMap to track shortcuts
+- **Events**: Emits `shortcut-triggered` with shortcut ID
+
+#### `src-tauri/src/screenshot/mod.rs`
+**Purpose**: Screenshot capture functionality (placeholder for implementation).
+- **Features** (to be implemented):
+  - Full screen capture
+  - Active window capture
+  - Region selection capture
+  - Screenshot overlay window management
+- **Commands**:
+  - `capture_fullscreen`: Capture entire screen
+  - `capture_window`: Capture active window
+  - `capture_region`: Capture specific area
+  - `show_screenshot_overlay`: Display selection UI
+  - `hide_screenshot_overlay`: Close selection UI
+- **Returns**: ScreenshotResult with base64 image data
+- **TODO**: Integrate screenshots-rs crate for actual capture
 
 #### `src-tauri/Cargo.toml`
 **Purpose**: Rust package manifest defining dependencies and metadata.
@@ -499,12 +580,16 @@ npm run tauri:build
 
 ### Immediate Tasks (From lists.md - CORE)
 1. ✅ Project Architecture & Setup - **COMPLETED**
-2. 🔄 OCR Core Implementation - **IN PROGRESS**
+2. ✅ OCR Core Implementation - **COMPLETED**
    - ✅ OCR approach evaluation and documentation
    - ✅ Tesseract.js service implementation
    - ✅ Async task queue system
-   - ⏳ Language file bundling for offline support
-3. ⏳ Screenshot Capture System - **NEXT**
+   - ⏳ Language file bundling for offline support (before release)
+3. 🔄 Screenshot Capture System - **IN PROGRESS**
+   - ✅ Global shortcut system (Rust + Frontend)
+   - ✅ Screenshot commands architecture
+   - ⏳ Actual screenshot capture implementation
+   - ⏳ Screenshot overlay UI
 4. ⏳ Local Data Storage
 5. ⏳ AI Integration Core
 6. ⏳ Security & Privacy
@@ -516,15 +601,17 @@ npm run tauri:build
 - ✅ Tauri + React configured with proper build pipeline
 - ✅ TypeScript strict mode enabled with path aliases
 - ✅ Build pipeline configured for Windows/macOS
-- ✅ Shared types defined (OCR, AI, Settings, etc.)
-- ✅ OCR service layer implemented (Tesseract.js)
+- ✅ Shared types defined (OCR, AI, Settings, Screenshots, etc.)
+- ✅ OCR service layer implemented (Tesseract.js + caching)
 - ✅ Task queue system for async operations
-- ✅ LRU caching for OCR results
+- ✅ Global shortcut system (Rust backend + Frontend service)
+- ✅ Screenshot command architecture (backend placeholder)
+- ✅ Shortcut conflict detection
 - ⚠️ TypeScript warnings to fix (see tobefix.md)
+- ⚠️ Need to run `npm install` in frontend/
 - ⏳ Frontend UI components pending
-- ⏳ Backend Tauri commands pending
-- ⏳ Screenshot capture pending
-- ⏳ Global shortcuts pending
+- ⏳ Actual screenshot capture implementation (need screenshots-rs)
+- ⏳ Screenshot overlay UI pending
 
 ### Important Notes for Production
 - 🔴 **Critical**: Must bundle Tesseract.js language files for offline EXE

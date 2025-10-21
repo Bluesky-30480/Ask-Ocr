@@ -78,12 +78,29 @@
 
 ---
 
+## 🆕 New Issues (2025-10-21)
+
+### 7. Missing @tauri-apps/api package
+**File**: Multiple files in `frontend/src/services/shortcuts/`  
+**Error**: Cannot find module '@tauri-apps/api/tauri' or '@tauri-apps/api/event'  
+**Fix**: Already added to package.json, need to run `npm install`  
+**Status**: ⏳ Pending - npm install required
+
+### 8. Implicit any type in event handlers
+**Files**: 
+- `frontend/src/services/shortcuts/shortcut-manager.service.ts:30`
+- `frontend/src/services/shortcuts/screenshot-manager.service.ts:73`  
+**Warning**: Parameter 'event' implicitly has an 'any' type  
+**Fix**: Add proper typing from Tauri event types  
+**Status**: ⏳ To be fixed
+
 ## 📝 Development TODOs
 
 ### Before Next Commit:
-- [ ] Fix TypeScript warnings (items 2, 3, 4)
+- [ ] Fix TypeScript warnings (items 2, 3, 4, 8)
+- [ ] Run npm install in frontend/ directory
 - [ ] Document Tesseract.js bundling strategy
-- [ ] Test if npm install resolves tesseract.js error
+- [ ] Test Rust build compiles correctly
 
 ### Before First Release:
 - [ ] Bundle Tesseract.js language files

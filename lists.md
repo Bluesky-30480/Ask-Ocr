@@ -26,13 +26,14 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **2.8** Bundle Tesseract.js language files for offline EXE support (CRITICAL)
 
 ### 3. Screenshot Capture System
-- [ ] **3.1** Implement Tauri global shortcut registration system
+- [x] **3.1** Implement Tauri global shortcut registration system
 - [ ] **3.2** Create screenshot overlay UI (HTML canvas or absolute div)
 - [ ] **3.3** Implement rectangle selection tool with border styling
-- [ ] **3.4** Add full-screen capture functionality
-- [ ] **3.5** Add window capture functionality
-- [ ] **3.6** Implement safe image data transfer (base64/file) to OCR module
-- [ ] **3.7** Add conflict detection for keyboard shortcuts
+- [x] **3.4** Add full-screen capture functionality (backend commands ready)
+- [x] **3.5** Add window capture functionality (backend commands ready)
+- [x] **3.6** Implement safe image data transfer (base64/file) to OCR module
+- [x] **3.7** Add conflict detection for keyboard shortcuts
+- [ ] **3.8** Add actual screenshot capture implementation (using screenshots-rs crate)
 
 ### 4. Local Data Storage
 - [ ] **4.1** Design database schema (SQLite or JSON)
