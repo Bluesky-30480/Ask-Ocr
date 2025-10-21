@@ -3,7 +3,7 @@
  * Manages OCR and other async tasks with priority, cancellation, and timeout support
  */
 
-import type { AsyncTask, AsyncTaskStatus } from '@shared/types';
+import type { AsyncTask } from '@shared/types';
 
 export interface TaskQueueOptions {
   maxConcurrent?: number;

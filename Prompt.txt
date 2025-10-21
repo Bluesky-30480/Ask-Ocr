@@ -35,3 +35,42 @@ Prompt
 你是一名产品创新顾问，请列出 8-12 条附加智能功能建议（简短说明），例如：自动为 OCR 文本生成 tags, 对数学公式的支持、关键句高亮、自动摘要并建议笔记标题、表格识别并导出为 CSV、智能搜索历史、模糊图片增强、批量 OCR、OCR 结果自动翻译并生成双语笔记等。对每个功能写一句落地实现提示和优先级建议（High/Medium/Low）。
 
 你是一名测试工程师，请写出一个测试与 CI 策略提示：包括单元测试（关键模块）、集成测试（OCR 流水线）、E2E（快捷键触发与弹窗流程）、静态类型检查/lint、以及在 CI 中如何做打包测试（多平台构建/签名）。列出推荐的测试工具与最低覆盖率目标。
+
+---
+
+## 📋 Development Guidelines (IMPORTANT)
+
+**For AI Developer:**
+
+1. **Before Each Work Session**: 
+   - Always read Prompt.txt, lists.md, structures.md, and tobefix.md
+   - Review current issues and warnings
+
+2. **Error and Warning Management**:
+   - Solve all errors and warnings in tobefix.md BEFORE continuing with new features
+   - Add any new errors/warnings to tobefix.md immediately
+   - Never ignore TypeScript errors or Rust warnings
+
+3. **Documentation Rules**:
+   - Update structures.md when adding new files (explain purpose of each file)
+   - Update lists.md when completing tasks (mark with [x])
+   - Only use PROGRESS.md for session summaries (append, never delete old content)
+   - Do NOT create other summary documents
+
+4. **EXE Packaging Mindset**:
+   - Always think: "Will this work after compiling to .exe?"
+   - No Python/Node.js runtime requirements for users
+   - Bundle all dependencies (Tesseract language files, workers, etc.)
+   - Test that everything is self-contained
+
+5. **Git Commit Rules**:
+   - Commit frequently with clear messages (max 30 words)
+   - Update documentation before committing
+   - Never commit with unresolved errors
+
+---
+
+## 🧮 Additional Features Required
+
+你是一名数学 OCR 工程师，请设计数学公式识别与转换功能：识别 OCR 文本中的数学公式（如 x² + 2x + 1 = 0），并转换为标准数学表示法（LaTeX 格式或 Unicode 数学符号）。说明如何识别常见数学符号（上标、下标、分数、根号、积分、求和等），以及如何处理混合文本与公式的情况。提供公式预览与编辑功能建议。
+

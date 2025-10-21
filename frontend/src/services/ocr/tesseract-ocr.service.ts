@@ -40,7 +40,7 @@ export class TesseractOcrService {
 
       // Create new worker
       this.worker = await createWorker({
-        logger: (m) => {
+        logger: (m: any) => {
           console.log('[Tesseract]', m);
         },
       });
@@ -138,7 +138,8 @@ export class TesseractOcrService {
     }
 
     try {
-      const result = await this.worker.recognize(imageData);
+      // Perform recognition to validate image contains recognizable text
+      await this.worker.recognize(imageData);
       
       // Tesseract doesn't have built-in language detection
       // This is a simplified approach - real implementation would analyze the result

@@ -27,7 +27,7 @@ export class ShortcutManager {
    */
   async initialize(): Promise<void> {
     // Listen for shortcut-triggered events from backend
-    this.unlistenFn = await listen<string>('shortcut-triggered', (event) => {
+    this.unlistenFn = await listen<string>('shortcut-triggered', (event: any) => {
       const shortcutId = event.payload;
       const callback = this.listeners.get(shortcutId);
       if (callback) {

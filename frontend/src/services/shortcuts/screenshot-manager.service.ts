@@ -70,7 +70,7 @@ export class ScreenshotManager {
       if (onRegionSelected && !this.overlayListener) {
         this.overlayListener = await listen<ScreenshotRegion>(
           'screenshot-region-selected',
-          (event) => {
+          (event: any) => {
             onRegionSelected(event.payload);
           }
         );

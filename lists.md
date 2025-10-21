@@ -207,7 +207,13 @@ Based on the comprehensive project requirements, tasks are organized into four p
 
 ### 20. Intelligent Features
 - [ ] **20.1** **[HIGH]** Auto-generate tags for OCR text
-- [ ] **20.2** **[HIGH]** Math formula recognition and LaTeX export
+- [ ] **20.2** **[HIGH]** Math formula recognition and conversion to LaTeX/Unicode
+- [ ] **20.2.1** Recognize superscripts (x²), subscripts (H₂O)
+- [ ] **20.2.2** Recognize fractions, roots, integrals, summation symbols
+- [ ] **20.2.3** Convert to LaTeX format (e.g., x^2 + 2x + 1 = 0)
+- [ ] **20.2.4** Convert to Unicode math symbols (∫, ∑, √, ≤, ≥, etc.)
+- [ ] **20.2.5** Formula preview and edit UI
+- [ ] **20.2.6** Handle mixed text and formulas
 - [ ] **20.3** **[HIGH]** Table recognition and CSV export
 - [ ] **20.4** **[MEDIUM]** Key sentence highlighting
 - [ ] **20.5** **[MEDIUM]** Auto-summary and note title suggestions
