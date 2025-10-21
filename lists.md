@@ -18,7 +18,7 @@ Based on the comprehensive project requirements, tasks are organized into four p
 ### 2. OCR Core Implementation
 - [x] **2.1** Evaluate and choose OCR approach (tesseract.js vs local backend)
 - [x] **2.2** Implement frontend OCR with tesseract.js (JavaScript, no dependencies)
-- [ ] **2.3** Design optional local backend OCR (Python/Rust with pytesseract/EasyOCR)
+- [x] **2.3** Design optional local backend OCR (Python/Rust with pytesseract/EasyOCR) ✅ Session 6: Hybrid OCR with offline-first strategy, online fallback, firewall detection, mode switching (offline/online/auto)
 - [x] **2.4** Implement async task queue for OCR processing (priority, cancel, timeout)
 - [x] **2.5** Add multi-language support (Chinese, English, etc.)
 - [x] **2.6** Implement OCR result validation and error handling ✅ Session 4: Added confidence checks, text quality validation, garbled text detection

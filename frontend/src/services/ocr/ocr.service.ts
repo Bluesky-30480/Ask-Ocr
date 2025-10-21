@@ -1,11 +1,21 @@
 /**
  * OCR Service Facade
  * Coordinates OCR operations with task queue and caching
+ * Supports hybrid offline/online OCR
  */
 
 import { tesseractOcr } from './tesseract-ocr.service';
+import { HybridOcrService } from './hybrid-ocr.service';
 import { ocrTaskQueue } from '../task-queue.service';
 import type { OcrResult, OcrRequest } from '@shared/types';
+
+// Initialize hybrid OCR service
+const hybridOcr = new HybridOcrService(tesseractOcr, {
+  mode: 'auto',
+  preferOffline: true,
+  onlineTimeout: 10000,
+  enableFirewallDetection: true,
+});
 
 export interface OcrServiceOptions {
   useCache?: boolean;
@@ -58,8 +68,8 @@ class OcrService {
           throw new Error('OCR task cancelled');
         }
 
-        // Perform OCR
-        const ocrResult = await tesseractOcr.recognize(processedImageData, options);
+        // Perform OCR using hybrid service
+        const ocrResult = await hybridOcr.recognize(processedImageData, options);
 
         // Cache result
         if (options.useCache !== false) {
@@ -81,14 +91,36 @@ class OcrService {
    * Initialize OCR with specific language
    */
   async initialize(language = 'eng'): Promise<void> {
-    await tesseractOcr.initialize(language);
+    await hybridOcr.initialize(language);
   }
 
   /**
    * Get supported languages
    */
   getSupportedLanguages() {
-    return tesseractOcr.getSupportedLanguages();
+    return hybridOcr.getSupportedLanguages();
+  }
+
+  /**
+   * Update OCR mode (offline/online/auto)
+   */
+  setOcrMode(mode: 'offline' | 'online' | 'auto'): void {
+    hybridOcr.updateConfig({ mode });
+    console.log(`OCR mode set to: ${mode}`);
+  }
+
+  /**
+   * Get OCR configuration
+   */
+  getOcrConfig() {
+    return hybridOcr.getConfig();
+  }
+
+  /**
+   * Check online connectivity
+   */
+  async checkConnectivity(): Promise<boolean> {
+    return hybridOcr.checkConnectivity();
   }
 
   /**
