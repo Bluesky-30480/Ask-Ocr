@@ -226,87 +226,109 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **20.11** **[LOW]** QR code/barcode scanning
 - [ ] **20.12** **[LOW]** Voice reading of OCR results (TTS)
 
-### 21. Data Sync & Backup
-- [ ] **21.1** Implement local-first backup strategy
-- [ ] **21.2** Add optional cloud sync (user choice)
-- [ ] **21.3** Create backup encryption
-- [ ] **21.4** Implement auto-backup scheduling
-- [ ] **21.5** Add restore from backup functionality
-- [ ] **21.6** Create backup/restore UI
+### 21. Universal Quick-Access AI Assistant (NEW)
+- [ ] **21.1** **[HIGH]** Implement global hotkey for quick AI access (e.g., Ctrl+Space or Ctrl+`)
+- [ ] **21.2** **[HIGH]** Create floating quick-input window (always-on-top, appears at cursor)
+- [ ] **21.3** **[HIGH]** Support context-aware queries from any application
+  - File Manager: Ask about files, get summaries, organize suggestions
+  - Web Browser: Summarize pages, extract info, translate
+  - Word/Documents: Grammar check, rewrite, summarize, translate
+  - Code Editors: Explain code, find bugs, suggest improvements
+  - Email: Draft replies, summarize threads
+  - Any Text Field: Quick answers, autocomplete, suggestions
+- [ ] **21.4** **[HIGH]** Auto-detect active application and adjust context
+- [ ] **21.5** **[MEDIUM]** Capture selected text from any app (clipboard integration)
+- [ ] **21.6** **[MEDIUM]** Capture screenshot of active window for visual context
+- [ ] **21.7** **[MEDIUM]** Show inline results or copy to clipboard
+- [ ] **21.8** **[MEDIUM]** History of quick queries with search
+- [ ] **21.9** **[MEDIUM]** Customizable response actions (copy, paste, insert, save)
+- [ ] **21.10** **[MEDIUM]** Multi-step conversation mode (follow-up questions)
+- [ ] **21.11** **[LOW]** Voice input for quick queries (speech-to-text)
+- [ ] **21.12** **[LOW]** Predefined quick actions/templates (translate, summarize, explain, etc.)
+- [ ] **21.13** **[LOW]** Integration with file metadata (Word docs, PDFs, images)
+- [ ] **21.14** **[LOW]** Smart paste (format-aware insertion back to source app)
 
-### 22. Advanced Export Options
-- [ ] **22.1** Export to Notion format
-- [ ] **22.2** Export to OneNote format
-- [ ] **22.3** Export to Evernote format
-- [ ] **22.4** Add custom export templates
-- [ ] **22.5** Implement batch export
+### 22. Data Sync & Backup
+- [ ] **22.1** Implement local-first backup strategy
+- [ ] **22.2** Add optional cloud sync (user choice)
+- [ ] **22.3** Create backup encryption
+- [ ] **22.4** Implement auto-backup scheduling
+- [ ] **22.5** Add restore from backup functionality
+- [ ] **22.6** Create backup/restore UI
 
-### 23. Collaboration Features
-- [ ] **23.1** Share OCR results via link
-- [ ] **23.2** Export shareable HTML reports
-- [ ] **23.3** Add annotations to OCR results
-- [ ] **23.4** Multi-user workspace support
+### 23. Advanced Export Options
+- [ ] **23.1** Export to Notion format
+- [ ] **23.2** Export to OneNote format
+- [ ] **23.3** Export to Evernote format
+- [ ] **23.4** Add custom export templates
+- [ ] **23.5** Implement batch export
 
-### 24. Performance Optimization
-- [ ] **24.1** Implement image compression before OCR
-- [ ] **24.2** Add OCR result caching
-- [ ] **24.3** Optimize database queries with indexes
-- [ ] **24.4** Implement lazy loading for history
-- [ ] **24.5** Add memory usage monitoring and cleanup
-- [ ] **24.6** Optimize app startup time
+### 24. Collaboration Features
+- [ ] **24.1** Share OCR results via link
+- [ ] **24.2** Export shareable HTML reports
+- [ ] **24.3** Add annotations to OCR results
+- [ ] **24.4** Multi-user workspace support
 
-### 25. Accessibility
-- [ ] **25.1** Add screen reader support
-- [ ] **25.2** Implement high contrast mode
-- [ ] **25.3** Add keyboard-only navigation support
-- [ ] **25.4** Create accessibility documentation
+### 25. Performance Optimization
+- [ ] **25.1** Implement image compression before OCR
+- [ ] **25.2** Add OCR result caching
+- [ ] **25.3** Optimize database queries with indexes
+- [ ] **25.4** Implement lazy loading for history
+- [ ] **25.5** Add memory usage monitoring and cleanup
+- [ ] **25.6** Optimize app startup time
 
-### 26. Testing & Quality Assurance
-- [ ] **26.1** Set up unit testing framework (Jest/Vitest)
-- [ ] **26.2** Write unit tests for core modules (target: 70%+ coverage)
-- [ ] **26.3** Implement integration tests for OCR pipeline
-- [ ] **26.4** Create E2E tests for shortcut triggers and modal flow (Playwright/Cypress)
-- [ ] **26.5** Add static type checking (TypeScript strict mode)
-- [ ] **26.6** Configure CI/CD pipeline
-- [ ] **26.7** Implement multi-platform build testing
-- [ ] **26.8** Add code signing to CI pipeline
-- [ ] **26.9** Create automated release process
-- [ ] **26.10** Set up error tracking (Sentry or similar)
+### 26. Accessibility
+- [ ] **26.1** Add screen reader support
+- [ ] **26.2** Implement high contrast mode
+- [ ] **26.3** Add keyboard-only navigation support
+- [ ] **26.4** Create accessibility documentation
 
-### 27. Documentation
-- [ ] **27.1** Write developer setup guide
-- [ ] **27.2** Create architecture documentation
-- [ ] **27.3** Write API documentation for all modules
-- [ ] **27.4** Create user manual
-- [ ] **27.5** Write contribution guidelines
-- [ ] **27.6** Add inline code comments
-- [ ] **27.7** Create video tutorials for main features
+### 27. Testing & Quality Assurance
+- [ ] **27.1** Set up unit testing framework (Jest/Vitest)
+- [ ] **27.2** Write unit tests for core modules (target: 70%+ coverage)
+- [ ] **27.3** Implement integration tests for OCR pipeline
+- [ ] **27.4** Create E2E tests for shortcut triggers and modal flow (Playwright/Cypress)
+- [ ] **27.5** Add static type checking (TypeScript strict mode)
+- [ ] **27.6** Configure CI/CD pipeline
+- [ ] **27.7** Implement multi-platform build testing
+- [ ] **27.8** Add code signing to CI pipeline
+- [ ] **27.9** Create automated release process
+- [ ] **27.10** Set up error tracking (Sentry or similar)
 
-### 28. Internationalization (i18n)
-- [ ] **28.1** Set up i18n framework
-- [ ] **28.2** Extract all UI strings
-- [ ] **28.3** Add English translation
-- [ ] **28.4** Add Chinese (Simplified) translation
-- [ ] **28.5** Add Chinese (Traditional) translation
-- [ ] **28.6** Add language switcher in settings
-- [ ] **28.7** Test RTL language support (if needed)
+### 28. Documentation
+- [ ] **28.1** Write developer setup guide
+- [ ] **28.2** Create architecture documentation
+- [ ] **28.3** Write API documentation for all modules
+- [ ] **28.4** Create user manual
+- [ ] **28.5** Write contribution guidelines
+- [ ] **28.6** Add inline code comments
+- [ ] **28.7** Create video tutorials for main features
 
-### 29. Advanced OCR Features
-- [ ] **29.1** Document structure recognition
-- [ ] **29.2** Multi-column text detection
-- [ ] **29.3** Image orientation auto-correction
-- [ ] **29.4** PDF OCR support
-- [ ] **29.5** Screenshot history auto-cleanup rules
+### 29. Internationalization (i18n)
+- [ ] **29.1** Set up i18n framework
+- [ ] **29.2** Extract all UI strings
+- [ ] **29.3** Add English translation
+- [ ] **29.4** Add Chinese (Simplified) translation
+- [ ] **29.5** Add Chinese (Traditional) translation
+- [ ] **29.6** Add language switcher in settings
+- [ ] **29.7** Test RTL language support (if needed)
 
-### 30. Update & Distribution
-- [ ] **30.1** Implement auto-update mechanism
-- [ ] **30.2** Create update changelog display
-- [ ] **30.3** Add update check on startup
-- [ ] **30.4** Implement silent background updates
-- [ ] **30.5** Create installer for Windows (NSIS/WiX)
-- [ ] **30.6** Create installer for macOS (DMG)
-- [ ] **30.7** Submit to Microsoft Store (optional)
-- [ ] **30.8** Submit to Mac App Store (optional)
+### 30. Advanced OCR Features
+- [ ] **30.1** Document structure recognition
+- [ ] **30.2** Multi-column text detection
+- [ ] **30.3** Image orientation auto-correction
+- [ ] **30.4** PDF OCR support
+- [ ] **30.5** Screenshot history auto-cleanup rules
+
+### 31. Update & Distribution
+- [ ] **31.1** Implement auto-update mechanism
+- [ ] **31.2** Create update changelog display
+- [ ] **31.3** Add update check on startup
+- [ ] **31.4** Implement silent background updates
+- [ ] **31.5** Create installer for Windows (NSIS/WiX)
+- [ ] **31.6** Create installer for macOS (DMG)
+- [ ] **31.7** Submit to Microsoft Store (optional)
+- [ ] **31.8** Submit to Mac App Store (optional)
 
 ---
 
