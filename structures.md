@@ -27,8 +27,9 @@ Ask_Ocr/
 ├── Prompt.txt                 # Original project requirements
 ├── lists.md                   # Detailed task list and planning
 ├── structures.md              # This file - project structure documentation
-├── tobefix.md                 # Issue tracking and error management (UPDATED)
-└── PROGRESS.md                # Development session summaries
+├── tobefix.md                 # Issue tracking and error management
+├── PROGRESS.md                # Development session summaries
+└── PRIVACY_POLICY.md          # Privacy policy documentation (NEW Session 6)
 ```
 
 ---
@@ -49,14 +50,37 @@ frontend/
 │   ├── services/             # Business logic services
 │   │   ├── ocr/              # OCR-related services
 │   │   │   ├── index.ts      # OCR service exports
-│   │   │   ├── ocr.service.ts           # OCR facade with caching
-│   │   │   └── tesseract-ocr.service.ts # Tesseract.js implementation
+│   │   │   ├── ocr.service.ts                   # OCR facade with caching
+│   │   │   ├── tesseract-ocr.service.ts         # Tesseract.js implementation
+│   │   │   ├── hybrid-ocr.service.ts            # Offline/online OCR (NEW Session 6)
+│   │   │   └── screenshot-ocr-workflow.service.ts # Screenshot→OCR pipeline (NEW Session 6)
 │   │   ├── shortcuts/        # Shortcut and screenshot services
 │   │   │   ├── index.ts      # Service exports
 │   │   │   ├── shortcut-manager.service.ts  # Global shortcut manager
 │   │   │   └── screenshot-manager.service.ts # Screenshot capture
+│   │   ├── security/         # Security and privacy (NEW Session 6)
+│   │   │   ├── index.ts      # Security service exports
+│   │   │   ├── encryption.service.ts        # AES-256-GCM encryption
+│   │   │   ├── api-key-manager.service.ts   # Encrypted API key storage
+│   │   │   ├── privacy-manager.service.ts   # Permission system
+│   │   │   ├── data-upload-notifier.service.ts # Upload notifications
+│   │   │   ├── privacy-settings.service.ts  # Offline-first settings
+│   │   │   └── secure-cleanup.service.ts    # Secure data deletion
+│   │   ├── platform/         # Cross-platform support (NEW Session 6)
+│   │   │   ├── index.ts      # Platform service exports
+│   │   │   ├── platform.service.ts          # OS detection & helpers
+│   │   │   └── shortcut-mapper.service.ts   # Platform shortcuts (130+)
+│   │   ├── system-tray/      # System tray integration (NEW Session 6)
+│   │   │   ├── index.ts      # Tray service exports
+│   │   │   └── system-tray.service.ts       # Tray icon & menu
+│   │   ├── ai/               # AI integration (Session 5)
+│   │   │   ├── index.ts      # AI service exports
+│   │   │   ├── ai-manager.service.ts        # Multi-provider coordination
+│   │   │   ├── openai-client.service.ts     # OpenAI API client
+│   │   │   ├── perplexity-client.service.ts # Perplexity API client
+│   │   │   └── prompt-templates.service.ts  # 7 prompt templates
 │   │   ├── task-queue.service.ts # Async task queue manager
-│   │   └── database.service.ts   # Database operations (NEW)
+│   │   └── database.service.ts   # Database operations
 │   ├── App.css               # App component styles
 │   ├── App.tsx               # Main App component
 │   ├── index.css             # Global styles
@@ -140,6 +164,36 @@ frontend/
   - `terminate()`: Cleanup worker resources
 - **Performance**: 2-8 seconds for typical screenshots
 - **Export**: Singleton instance `tesseractOcr`
+
+#### `frontend/src/services/ocr/hybrid-ocr.service.ts` (NEW - Session 6)
+**Purpose**: Hybrid OCR service with offline-first strategy and online fallback.
+- **Features**:
+  - Three modes: offline (force local), online (force remote), auto (intelligent)
+  - Network connectivity detection with 30s caching
+  - Firewall detection for graceful degradation
+  - Provider registration system for extensibility
+  - Timeout protection (10s default)
+- **Main Methods**:
+  - `recognize(imageData, mode)`: Auto-select offline/online based on mode
+  - `recognizeOffline(imageData)`: Force local Tesseract.js processing
+  - `recognizeOnline(imageData)`: Try registered online providers
+  - `registerOnlineProvider(provider)`: Add custom OCR provider
+  - `checkOnlineAvailability()`: Test network with caching
+- **Export**: Singleton instance `hybridOcr`
+
+#### `frontend/src/services/screenshot-ocr-workflow.service.ts` (NEW - Session 6)
+**Purpose**: End-to-end screenshot→OCR workflow with progress tracking.
+- **Features**:
+  - 5-stage progress tracking (capturing 10-30%, processing 40-80%, saving 90%, complete 100%)
+  - Quick capture mode (one-line API)
+  - Cancellation support for long operations
+  - Auto-save to database
+  - Error recovery
+- **Main Methods**:
+  - `captureAndProcess(mode, options)`: Full workflow with progress callback
+  - `quickCapture(mode)`: Simple one-line screenshot + OCR
+  - `cancel()`: Stop active workflow
+- **Export**: Singleton instance `screenshotOcrWorkflow`
 
 #### `frontend/src/services/ocr/ocr.service.ts`
 **Purpose**: High-level OCR service facade with caching and task management.
@@ -251,6 +305,69 @@ frontend/
   - `createOcrRecordTemplate()`: Create record with defaults
   - `createSettingTemplate()`: Create setting with defaults
 - **Export**: Singleton `databaseService`
+
+#### `frontend/src/services/security/` (NEW - Session 6)
+**Purpose**: Security and privacy services for API key encryption, permissions, and data protection.
+
+##### `encryption.service.ts`
+- **Purpose**: Web Crypto API encryption for sensitive data
+- **Features**: AES-256-GCM encryption, PBKDF2 key derivation (100k iterations), random salt/IV
+- **Methods**: `encrypt()`, `decrypt()`, `deriveKey()`, `hashPassword()`
+- **Export**: `encryptionService`
+
+##### `api-key-manager.service.ts`
+- **Purpose**: Encrypted API key storage with master password
+- **Features**: Master password protection, in-memory caching, auto-lock, password validation
+- **Methods**: `setMasterPassword()`, `unlock()`, `storeApiKey()`, `getApiKey()`, `changeMasterPassword()`
+- **Export**: `apiKeyManager`
+
+##### `privacy-manager.service.ts`
+- **Purpose**: User privacy permissions and consent tracking
+- **Features**: 7 permission types, grant/revoke system, consent versioning, offline mode
+- **Methods**: `grantPermission()`, `revokePermission()`, `hasPermission()`, `acceptPrivacyPolicy()`
+- **Export**: `privacyManager`
+
+##### `data-upload-notifier.service.ts`
+- **Purpose**: Notifications for data uploads to remote services
+- **Features**: Toast/system notifications, upload history, statistics, confirmation dialogs
+- **Methods**: `notify()`, `getHistory()`, `getStatistics()`, `requestUploadConfirmation()`
+- **Export**: `dataUploadNotifier`
+
+##### `privacy-settings.service.ts`
+- **Purpose**: Offline-first privacy settings management
+- **Features**: Default offline mode, granular controls, import/export, feature-gating
+- **Methods**: `updateSettings()`, `enableOfflineMode()`, `resetToDefaults()`, `exportSettings()`
+- **Export**: `privacySettingsService`
+
+##### `secure-cleanup.service.ts`
+- **Purpose**: Secure data deletion on uninstall
+- **Features**: Full/partial cleanup, secure wiping, auto-cleanup scheduling
+- **Methods**: `fullCleanup()`, `cleanup(options)`, `exportData()`, `scheduleAutoCleanup()`
+- **Export**: `secureDataCleanupService`
+
+#### `frontend/src/services/platform/` (NEW - Session 6)
+**Purpose**: Cross-platform compatibility for Windows/macOS/Linux.
+
+##### `platform.service.ts`
+- **Purpose**: Platform detection and OS-specific helpers
+- **Features**: OS detection, platform paths, modifier keys (Ctrl/Cmd), feature detection
+- **Methods**: `isWindows()`, `isMacOS()`, `getModifierKey()`, `getAppDataPath()`, `supportsFeature()`
+- **Export**: `platformService`
+
+##### `shortcut-mapper.service.ts`
+- **Purpose**: Platform-specific keyboard shortcuts (130+ mappings)
+- **Features**: Global/window/editor categories, conflict detection, Tauri format conversion
+- **Methods**: `getShortcut(id)`, `getAllShortcuts()`, `hasConflict()`, `toTauriFormat()`
+- **Export**: `shortcutMapper`
+
+#### `frontend/src/services/system-tray/` (NEW - Session 6)
+**Purpose**: System tray integration.
+
+##### `system-tray.service.ts`
+- **Purpose**: Tray icon and menu management
+- **Features**: Tray initialization, offline toggle, window show/hide, tooltip management
+- **Methods**: `initialize()`, `toggleOfflineMode()`, `setTooltip()`, `showWindow()`, `hideWindow()`
+- **Export**: `systemTrayService`
 
 ---
 

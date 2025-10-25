@@ -1,37 +1,37 @@
 # To Be Fixed - Issues and Warnings
 
-**Last Updated**: 2025-10-21
+**Last Updated**: 2025-10-25 (Session 6)
 
 ---
 
-## ✅ Summary - Session 3
+## ✅ Summary - Session 6
 
 **Completed in this session:**
-- ✅ Fixed Item #1: Missing tesseract.js dependency (ran npm install)
-- ✅ Fixed Item #2, #3, #4, #8: All TypeScript warnings resolved
-- ✅ Documented Item #5: Tesseract.js bundling strategy (comprehensive guide created)
-- ✅ Fixed Item #6: Configured Vite to bundle Tesseract worker files
-- ✅ Fixed Item #7: Missing @tauri-apps/api package (ran npm install)
-- ✅ Fixed Rust warning: Added #[allow(dead_code)] to ScreenshotMode enum
-- ✅ Verified: Rust build compiles successfully
-- ✅ Verified: Frontend production build works (4 files copied by static-copy plugin)
+- ✅ All TypeScript errors resolved (system-tray.service.ts)
+- ✅ Security & Privacy features complete (Tasks 5.7-6.6)
+- ✅ Cross-Platform support foundation (Platform service, Shortcut mapper, System tray)
+- ✅ Hybrid OCR implementation with offline-first strategy
+- ✅ Production build successful (npm run build passes)
 
-**Remaining work:**
-- 📝 Download and bundle actual Tesseract language files (.traineddata) before release
-- 🧪 Test packaged app with offline OCR
-- 🔄 Continue with lists.md tasks (database, AI integration, UI)
+**Known Non-Blocking Issues:**
+- ⚠️ TypeScript language server cache issue (shortcut-mapper.service.ts not recognized in IDE, but builds fine)
 
-**Current Status**: All critical errors fixed ✅ | No TypeScript errors ✅ | No Rust errors ✅
+**Current Status**: 
+- TypeScript compilation: ✅ CLEAN (npm run build successful)
+- Rust compilation: ✅ CLEAN
+- No blocking errors
 
 ---
 
-## 🔴 Critical Errors
+## � Known Non-Blocking Issues
 
-*None remaining - all critical errors have been resolved!*
-
----
-
-## 🟠 Known Non-Blocking Issues
+### TypeScript Language Server Cache Issue (NEW)
+**Files Affected**: `frontend/src/services/platform/index.ts`  
+**Issue**: IDE shows "Cannot find module './shortcut-mapper.service'" but file exists and builds successfully  
+**Status**: ⚠️ Non-blocking - TypeScript cache issue only  
+**Verification**: `npm run build` completes without errors  
+**Solution**: Will resolve on IDE restart or TypeScript server reload  
+**Note**: Does not affect actual compilation or runtime
 
 ### Rust Analyzer OUT_DIR Warning
 **File**: `src-tauri/src/main.rs:35`  

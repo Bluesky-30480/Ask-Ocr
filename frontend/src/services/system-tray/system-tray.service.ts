@@ -4,7 +4,6 @@
  */
 
 import { invoke } from '@tauri-apps/api/tauri';
-import { platformService } from '../platform/platform.service';
 
 export interface TrayMenuItem {
   id: string;
@@ -16,7 +15,6 @@ export interface TrayMenuItem {
 }
 
 export class SystemTrayService {
-  private initialized = false;
 
   /**
    * Initialize system tray
@@ -26,7 +24,6 @@ export class SystemTrayService {
       // Tray is configured in tauri.conf.json
       // This service manages tray interactions via backend commands
       await invoke('init_system_tray');
-      this.initialized = true;
       
       console.log('System tray initialized');
     } catch (error) {
