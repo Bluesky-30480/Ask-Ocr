@@ -103,6 +103,13 @@ export class PlatformService {
   }
 
   /**
+   * Get current platform
+   */
+  getCurrentPlatform(): Platform {
+    return this.platformInfo?.platform ?? 'unknown';
+  }
+
+  /**
    * Check if running on Windows
    */
   isWindows(): boolean {
@@ -142,6 +149,60 @@ export class PlatformService {
    */
   getModifierKeySymbol(): string {
     return this.isMacOS() ? '⌘' : 'Ctrl';
+  }
+
+  /**
+   * Get primary modifier key name
+   */
+  getPrimaryModifier(): string {
+    return this.isMacOS() ? 'Cmd' : 'Ctrl';
+  }
+
+  /**
+   * Get secondary modifier key name
+   */
+  getSecondaryModifier(): string {
+    return this.isMacOS() ? 'Option' : 'Alt';
+  }
+
+  /**
+   * Get user home directory
+   */
+  async getHomeDirectory(): Promise<string> {
+    try {
+      const { homeDir } = await import('@tauri-apps/api/path');
+      return await homeDir();
+    } catch (error) {
+      console.error('Failed to get home directory:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user data directory
+   */
+  async getUserDataPath(): Promise<string> {
+    try {
+      const { dataDir } = await import('@tauri-apps/api/path');
+      return await dataDir();
+    } catch (error) {
+      console.error('Failed to get user data path:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get temporary directory
+   */
+  async getTempPath(): Promise<string> {
+    try {
+      const { cacheDir } = await import('@tauri-apps/api/path');
+      // Use cache dir as temp alternative since tempDir doesn't exist in Tauri
+      return await cacheDir();
+    } catch (error) {
+      console.error('Failed to get temp path:', error);
+      throw error;
+    }
   }
 
   /**
