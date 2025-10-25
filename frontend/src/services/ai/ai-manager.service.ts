@@ -58,7 +58,7 @@ export class AIIntegrationManager {
   }
 
   /**
-   * Send request to AI provider with fallback strategy
+   * Send request to AI provider with fallback strategy and retry logic
    */
   async sendRequest(request: AIRequest, preferredProvider?: AIProvider): Promise<AIResponse> {
     const providers = this.selectProviders(preferredProvider);
@@ -68,17 +68,46 @@ export class AIIntegrationManager {
     }
 
     let lastError: Error | null = null;
+    const maxRetries = this.strategy.retryAttempts;
 
     // Try each provider in order
     for (const provider of providers) {
-      try {
-        console.log(`Attempting AI request with provider: ${provider}`);
-        const response = await this.executeRequest(provider, request);
-        return response;
-      } catch (error) {
-        console.warn(`AI request failed with ${provider}:`, error);
-        lastError = error as Error;
-        // Continue to next provider
+      let retryCount = 0;
+
+      while (retryCount <= maxRetries) {
+        try {
+          console.log(
+            `Attempting AI request with provider: ${provider}${retryCount > 0 ? ` (retry ${retryCount}/${maxRetries})` : ''}`
+          );
+
+          const response = await this.executeRequestWithRetry(provider, request, retryCount);
+          
+          console.log(`AI request succeeded with provider: ${provider}`);
+          return response;
+        } catch (error) {
+          const errorMessage = (error as Error).message || 'Unknown error';
+          
+          // Check if error is retryable
+          const isRetryable = this.isRetryableError(error as Error);
+          
+          if (isRetryable && retryCount < maxRetries) {
+            console.warn(
+              `AI request failed with ${provider} (attempt ${retryCount + 1}/${maxRetries + 1}): ${errorMessage}. Retrying...`
+            );
+            
+            // Exponential backoff: wait 2^retryCount seconds
+            const backoffMs = Math.pow(2, retryCount) * 1000;
+            await new Promise((resolve) => setTimeout(resolve, backoffMs));
+            
+            retryCount++;
+          } else {
+            console.warn(
+              `AI request failed with ${provider}: ${errorMessage}${isRetryable ? ' (max retries reached)' : ' (non-retryable error)'}`
+            );
+            lastError = error as Error;
+            break; // Move to next provider
+          }
+        }
       }
     }
 
@@ -121,18 +150,22 @@ export class AIIntegrationManager {
   }
 
   /**
-   * Execute request on specific provider
+   * Execute request with retry support
    */
-  private async executeRequest(
+  private async executeRequestWithRetry(
     provider: AIProvider,
-    request: AIRequest
+    request: AIRequest,
+    retryCount: number
   ): Promise<AIResponse> {
     const client = this.providers.get(provider);
     if (!client) {
       throw new Error(`Provider ${provider} not registered`);
     }
 
-    const timeout = this.strategy.timeout;
+    // Increase timeout for retries
+    const baseTimeout = this.strategy.timeout;
+    const timeout = baseTimeout * (1 + retryCount * 0.5); // 50% increase per retry
+    
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout)
     );
@@ -143,6 +176,41 @@ export class AIIntegrationManager {
     } catch (error) {
       throw error;
     }
+  }
+
+  /**
+   * Execute request on specific provider (legacy method)
+   */
+  private async executeRequest(
+    provider: AIProvider,
+    request: AIRequest
+  ): Promise<AIResponse> {
+    return this.executeRequestWithRetry(provider, request, 0);
+  }
+
+  /**
+   * Check if error is retryable
+   */
+  private isRetryableError(error: Error): boolean {
+    const errorMessage = error.message.toLowerCase();
+
+    // Retryable errors: network issues, timeouts, rate limits, server errors
+    const retryablePatterns = [
+      'timeout',
+      'network',
+      'econnreset',
+      'econnrefused',
+      'enotfound',
+      '429', // Rate limit
+      '500', // Internal server error
+      '502', // Bad gateway
+      '503', // Service unavailable
+      '504', // Gateway timeout
+      'fetch failed',
+      'failed to fetch',
+    ];
+
+    return retryablePatterns.some((pattern) => errorMessage.includes(pattern));
   }
 
   /**
