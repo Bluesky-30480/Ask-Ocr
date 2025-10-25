@@ -226,27 +226,748 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **20.11** **[LOW]** QR code/barcode scanning
 - [ ] **20.12** **[LOW]** Voice reading of OCR results (TTS)
 
-### 21. Universal Quick-Access AI Assistant (NEW)
-- [ ] **21.1** **[HIGH]** Implement global hotkey for quick AI access (e.g., Ctrl+Space or Ctrl+`)
-- [ ] **21.2** **[HIGH]** Create floating quick-input window (always-on-top, appears at cursor)
-- [ ] **21.3** **[HIGH]** Support context-aware queries from any application
-  - File Manager: Ask about files, get summaries, organize suggestions
-  - Web Browser: Summarize pages, extract info, translate
-  - Word/Documents: Grammar check, rewrite, summarize, translate
-  - Code Editors: Explain code, find bugs, suggest improvements
-  - Email: Draft replies, summarize threads
-  - Any Text Field: Quick answers, autocomplete, suggestions
-- [ ] **21.4** **[HIGH]** Auto-detect active application and adjust context
-- [ ] **21.5** **[MEDIUM]** Capture selected text from any app (clipboard integration)
-- [ ] **21.6** **[MEDIUM]** Capture screenshot of active window for visual context
-- [ ] **21.7** **[MEDIUM]** Show inline results or copy to clipboard
-- [ ] **21.8** **[MEDIUM]** History of quick queries with search
-- [ ] **21.9** **[MEDIUM]** Customizable response actions (copy, paste, insert, save)
-- [ ] **21.10** **[MEDIUM]** Multi-step conversation mode (follow-up questions)
-- [ ] **21.11** **[LOW]** Voice input for quick queries (speech-to-text)
-- [ ] **21.12** **[LOW]** Predefined quick actions/templates (translate, summarize, explain, etc.)
-- [ ] **21.13** **[LOW]** Integration with file metadata (Word docs, PDFs, images)
-- [ ] **21.14** **[LOW]** Smart paste (format-aware insertion back to source app)
+### 21. Universal Quick-Access AI Assistant ⭐ EXPANDED
+> **Goal**: "Everywhere"-style AI assistant accessible from any application - A comprehensive intelligent system with deep integration across files, web, documents, and system operations
+> 
+> **Vision**: Replace 10+ separate tools (Grammarly, file search, web scraper, translation, code assistant) with one unified AI interface
+> 
+> **Priority Levels**: 
+> - 🔴 **CRITICAL** (21.1-21.5): Core UI and context detection - Must implement first
+> - 🟠 **HIGH** (21.6-21.20): Intelligence features - Primary value proposition
+> - 🟡 **MEDIUM** (21.21-21.35): Advanced integrations - Competitive advantages
+> - 🟢 **LOW** (21.36-21.40): Polish and analytics - Future enhancements
+
+#### 🔴 Core Infrastructure (CRITICAL Priority)
+- [ ] **21.1** Global hotkey registration system
+  - Customizable hotkey combinations (default: Ctrl+Space, Ctrl+`, or Ctrl+Shift+A)
+  - Support multiple hotkeys for different modes (quick query, file search, grammar check, web summary)
+  - Platform-specific key binding (Windows RegisterHotKey, macOS Carbon/Cocoa, Linux XGrabKey)
+  - Conflict detection with system shortcuts and warning UI
+  - Hotkey combo recording interface in settings (press keys to record)
+  - Hotkey profiles for different use cases
+
+- [ ] **21.2** Floating quick-input window
+  - Always-on-top, draggable, resizable window with smooth animations
+  - Customizable position (center screen, follow cursor, corner anchor, saved coordinates)
+  - Auto-hide on focus loss with configurable delay
+  - Blur/transparency effects (Windows acrylic, macOS vibrancy, Linux compositor)
+  - Dark/Light theme auto-detection from system preferences
+  - Compact mode (single line) vs Expanded mode (multi-line + preview)
+  - Remember position per monitor setup and restore on relaunch
+  - Keyboard shortcuts for window control (Esc to hide, Enter to submit)
+
+- [ ] **21.3** Active application context detection
+  - Real-time detection of focused application (File Explorer, Chrome, VS Code, Word, Excel, PowerPoint, Outlook, etc.)
+  - Extract rich app-specific context:
+    * **File Explorer**: Current folder path, selected files, file properties
+    * **Browser**: URL, page title, selected text, visible content, DOM structure
+    * **VS Code/IDEs**: Open file, selected code, language, project structure
+    * **Word/Office**: Document title, selected text, paragraph, cursor position
+    * **Email**: Sender, subject, message body, attachments
+  - Platform integration:
+    * **Windows**: Win32 GetForegroundWindow, UI Automation, COM for Office
+    * **macOS**: Accessibility API, AppleScript bridge, Universal Access
+    * **Linux**: X11 XGetInputFocus, Wayland protocols, AT-SPI
+  - Context caching with 100ms refresh rate for performance
+  - Privacy controls: User can disable context for specific apps
+
+- [ ] **21.4** Universal text capture system
+  - Auto-capture selected text from any application using multiple methods:
+    * Clipboard monitoring (detect selection copy with Ctrl+C interception)
+    * Accessibility API (get selected text without clipboard)
+    * OCR fallback for non-selectable text (images, PDFs, legacy apps)
+  - Structured data extraction with AI:
+    * Tables → CSV/JSON format
+    * Lists → Markdown lists
+    * JSON/XML → Formatted and validated
+    * Code → Language detection + syntax preservation
+  - Multi-language text detection (detect Chinese, Japanese, Arabic, etc.)
+  - Preserve formatting metadata (bold, italic, links, colors, fonts)
+  - Text diff detection (compare with previous capture)
+  - Privacy mode: Mask sensitive patterns (SSN, credit cards, passwords)
+
+- [ ] **21.5** Screenshot & visual context capture
+  - Capture modes:
+    * **Active window**: Auto-detect and capture focused window only
+    * **Selected region**: Manual rectangle selection tool with magnifier
+    * **Full screen**: All monitors or specific monitor
+    * **Scrolling capture**: Auto-scroll and stitch long pages/documents
+  - Pre-processing before AI:
+    * Annotate screenshots (arrows, boxes, text, highlights)
+    * Crop, rotate, adjust brightness/contrast
+    * Remove sensitive information (blur regions)
+  - AI vision capabilities:
+    * OCR text extraction from images with layout preservation
+    * Image-to-text description generation
+    * Visual question answering (VQA): "What's the price in this screenshot?"
+    * Object detection and counting
+    * Chart/graph data extraction
+  - Screenshot management:
+    * Auto-save to folder with timestamps
+    * Screenshot history with thumbnails
+    * Quick sharing (copy to clipboard, upload to image host)
+
+#### 🟠 Intelligent File Operations (HIGH Priority)
+- [ ] **21.6** Advanced file search & indexing
+  - **Real-time indexing engine**:
+    * Index file content, not just filenames (text, code, docs, PDFs, images with OCR)
+    * Incremental indexing (watch for file changes, update index instantly)
+    * Configurable index locations (whole drive, specific folders, external drives)
+    * Index size optimization (compression, deduplication)
+  - **Semantic search with AI**:
+    * Natural language queries: "find my Python files about database migration from last month"
+    * Conceptual search: Search "machine learning" finds "neural network", "deep learning" files
+    * Multi-criteria: Content + date + size + type + tags combined
+    * Fuzzy matching and typo tolerance (Levenshtein distance)
+  - **Integration with system search**:
+    * Windows Search (Windows.Search API)
+    * macOS Spotlight (NSMetadataQuery)
+    * Linux locate/mlocate, GNOME Tracker, KDE Baloo
+  - **Search features**:
+    * Search scopes (projects, favorites, recent, custom folders)
+    * Saved searches with auto-refresh
+    * Search history with frequency ranking
+    * Regex and wildcard support
+    * Exclude patterns (node_modules, .git, etc.)
+
+- [ ] **21.7** File content analysis & summarization
+  - **Document summarization**:
+    * Extract key points, main ideas, conclusions
+    * Multi-level summaries (one-sentence, paragraph, detailed)
+    * Section-by-section breakdown for long documents
+    * TL;DR generation
+  - **Code analysis**:
+    * List functions, classes, methods with descriptions
+    * Extract imports and dependencies
+    * Identify code patterns and architecture
+    * Estimate complexity and maintainability
+    * Find TODOs, FIXMEs, bugs
+  - **Supported formats**:
+    * Text: TXT, MD, CSV, JSON, XML, YAML, LOG
+    * Documents: PDF, DOCX, XLSX, PPTX, ODT, RTF
+    * Code: All major languages (Python, JS, Java, C++, etc.)
+    * Images: Extract text with OCR
+  - **Analysis features**:
+    * Generate table of contents
+    * Extract action items and deadlines
+    * Detect document language and encoding
+    * Identify duplicate content
+    * Relationship mapping (which files import/reference each other)
+
+- [ ] **21.8** File metadata extraction & enrichment
+  - **Read existing metadata**:
+    * Images: EXIF (camera, location, date), IPTC, XMP
+    * Audio/Video: ID3 tags, duration, codec, bitrate
+    * Documents: Author, title, keywords, creation/modification dates
+    * Code: Git history, author, last commit
+  - **AI-powered enrichment**:
+    * Auto-generate tags based on content analysis
+    * Suggest better filenames based on content (e.g., "IMG_1234.jpg" → "Sunset_Beach_2024.jpg")
+    * Detect missing or incorrect metadata
+    * Bulk metadata editing with preview
+  - **Smart organization**:
+    * Suggest folder structure based on file types and content
+    * Detect misplaced files
+    * Recommend archiving old/unused files
+    * Duplicate detection by content hash and fuzzy matching
+
+- [ ] **21.9** Batch file operations with AI assistance
+  - **Bulk rename**:
+    * Pattern-based rename (regex, templates)
+    * AI suggestions based on content
+    * Sequential numbering with custom format
+    * Preview all changes before applying
+    * Undo/redo support
+  - **Batch conversion**:
+    * Image format conversion (PNG, JPG, WebP, SVG) with quality settings
+    * Document conversion (PDF ↔ DOCX, MD ↔ HTML)
+    * Audio/video format conversion
+    * Encoding conversion (UTF-8, ASCII, etc.)
+  - **Mass operations**:
+    * Batch tagging and categorization
+    * Duplicate cleanup (keep best quality, newest, or user choice)
+    * Archive recommendations (compress rarely used files)
+    * Permission and ownership fixes
+    * Metadata stripping for privacy
+
+#### 🟠 Writing & Grammar Tools (HIGH Priority)
+- [ ] **21.10** Advanced grammar and style checker (Grammarly alternative)
+  - **Grammar checking**:
+    * Detect spelling, grammar, punctuation errors
+    * Subject-verb agreement, tense consistency
+    * Article usage (a/an/the)
+    * Preposition errors
+    * Sentence fragments and run-ons
+  - **Style suggestions**:
+    * Formality level adjustment (casual ↔ formal ↔ academic ↔ business)
+    * Tone analysis (friendly, assertive, apologetic, persuasive)
+    * Passive voice detection with active voice alternatives
+    * Wordiness and redundancy ("in order to" → "to")
+    * Cliché detection with fresh alternatives
+  - **Readability**:
+    * Flesch-Kincaid grade level
+    * Average sentence length and word complexity
+    * Suggestions to improve clarity
+    * Highlight complex sentences
+  - **Advanced features**:
+    * Plagiarism detection (optional, with Copyscape/Turnitin APIs)
+    * Consistency checker (US vs UK spelling, Oxford comma, date formats)
+    * Domain-specific vocabulary (legal, medical, technical)
+
+- [ ] **21.11** Writing enhancement tools
+  - **Rewriting**:
+    * Paraphrase with semantic preservation
+    * Expand (add details, examples, explanations)
+    * Condense (remove fluff, keep essentials)
+    * Simplify (reduce complexity for broader audience)
+  - **Improvement suggestions**:
+    * Replace weak words with stronger alternatives
+    * Add transition words for better flow
+    * Vary sentence structure to avoid monotony
+    * Improve opening and closing sentences
+  - **Vocabulary**:
+    * Context-aware synonym suggestions
+    * Word choice improvements (said → stated, asserted, declared)
+    * Avoid overused words
+    * Technical term explanations
+
+- [ ] **21.12** Multi-language translation & localization
+  - **Translation features**:
+    * 100+ languages support (Google Translate, DeepL, Microsoft Translator APIs)
+    * Context-aware translation (not word-by-word, preserve meaning)
+    * Formality level (formal "vous" vs informal "tu" in French)
+    * Regional dialects (US English, UK English, Brazilian Portuguese, etc.)
+  - **Advanced translation**:
+    * Technical term preservation (don't translate brand names, code, formulas)
+    * Bidirectional translation with back-translation verification
+    * Batch translation of multiple selections
+    * Translation memory (reuse previous translations)
+  - **Localization**:
+    * Date/time format conversion
+    * Number format (1,000.50 vs 1.000,50)
+    * Currency conversion with current rates
+    * Measurement unit conversion (miles ↔ km)
+  - **Other features**:
+    * Romanization (Chinese → Pinyin, Japanese → Romaji)
+    * Transliteration (Cyrillic ↔ Latin)
+    * Language detection (auto-detect source language)
+
+- [ ] **21.13** Writing templates and assistance
+  - **Email templates**:
+    * Professional request, apology, follow-up, introduction
+    * Casual greeting, thank you, congratulations
+    * Business proposal, meeting invitation, schedule change
+    * Customer support responses
+  - **Document templates**:
+    * Essay structure (intro, body paragraphs, conclusion)
+    * Research paper (abstract, methodology, results, discussion)
+    * Report (executive summary, findings, recommendations)
+    * Cover letter and resume optimization
+  - **Code documentation**:
+    * Function/class docstrings generation
+    * README.md generation from code
+    * API documentation from endpoint definitions
+    * Changelog generation from Git commits
+  - **Other templates**:
+    * Meeting notes and minutes with action items
+    * Social media posts (Twitter, LinkedIn, Facebook optimized lengths)
+    * Marketing copy (headlines, CTAs, product descriptions)
+    * Blog post outlines
+
+#### 🟠 Web Integration (HIGH Priority)
+- [ ] **21.14** Smart web page summarization
+  - **Auto-detect browser**:
+    * Get URL from active browser tab (Chrome, Edge, Firefox, Safari)
+    * Support for browser extensions as data source
+  - **Content extraction**:
+    * Clean HTML parsing (remove ads, popups, navigation, sidebars)
+    * Main content detection using readability algorithms
+    * Multi-page article aggregation ("Next Page" detection)
+    * Pagination handling (page 1 of 5)
+  - **Summarization**:
+    * TL;DR (2-3 sentences)
+    * Bullet-point summary
+    * Key facts and statistics extraction
+    * Author, date, source identification
+  - **Special handling**:
+    * News articles, blog posts, documentation
+    * Product pages (extract price, specs, reviews)
+    * Research papers (abstract, methodology, conclusions)
+    * Social media threads (Twitter, Reddit)
+  - **Paywalled content**:
+    * Ethical scraping techniques (12ft.io, archive.is integration)
+    * User disclaimer and legal warnings
+
+- [ ] **21.15** Web content Q&A system
+  - **Question answering**:
+    * Ask questions about current webpage: "What's the main argument?", "Who is the author?"
+    * Extract specific data: "What's the price?", "When was this published?"
+    * Compare information: "What are the pros and cons mentioned?"
+  - **Multi-source research**:
+    * Aggregate information from multiple tabs
+    * Cross-reference facts across websites
+    * Detect contradictions between sources
+  - **Fact-checking**:
+    * Verify claims with source citations
+    * Check against trusted sources (Wikipedia, fact-checking sites)
+    * Highlight unverified or dubious claims
+  - **Citation generation**:
+    * Generate citations in APA, MLA, Chicago formats
+    * Create bibliography from browsing history
+
+- [ ] **21.16** Web data extraction & scraping
+  - **Structured data extraction**:
+    * Extract tables from HTML → CSV/Excel/JSON
+    * Parse JSON-LD, microdata, RDFa
+    * Extract lists, menus, navigation structures
+  - **Product scraping**:
+    * Price, reviews, ratings, specifications
+    * Availability and stock status
+    * Product images and descriptions
+    * Compare prices across websites
+  - **Monitoring**:
+    * Watch web pages for changes
+    * Price drop alerts
+    * New content notifications
+    * Archive snapshots for comparison
+  - **Bulk download**:
+    * Download images, videos, PDFs from page
+    * Organize downloads by type/source
+    * Resume interrupted downloads
+
+- [ ] **21.17** Browser extension bridge
+  - **Extension integration**:
+    * Create browser extensions for Chrome, Edge, Firefox
+    * Bidirectional communication (extension ↔ desktop app)
+    * Share context (URL, selected text, page content)
+  - **Features**:
+    * Right-click context menu: "Ask AI about this"
+    * Floating button on all web pages
+    * Sync query history between browser and desktop
+    * Send tabs/bookmarks to desktop app for processing
+  - **Cross-platform**:
+    * Bookmark sync and analysis
+    * Reading list management
+    * Web annotation sync (highlights, notes)
+
+#### 🟠 Code & Development Tools (HIGH Priority)
+- [ ] **21.18** Code understanding and explanation
+  - **Code explanation**:
+    * Explain selected code in natural language
+    * Line-by-line breakdown for complex algorithms
+    * Explain programming concepts (recursion, closures, async/await)
+  - **Documentation generation**:
+    * Generate docstrings/JSDoc/Javadoc comments
+    * Function signature documentation
+    * Parameter descriptions and return values
+    * Example usage code
+  - **Code quality**:
+    * Identify code smells and anti-patterns
+    * Detect duplicate code
+    * Find unused variables, imports, functions
+    * Suggest design pattern improvements
+  - **Security analysis**:
+    * Detect SQL injection vulnerabilities
+    * Find XSS, CSRF risks
+    * Hardcoded credentials detection
+    * Insecure cryptography usage
+
+- [ ] **21.19** Code generation and completion
+  - **Natural language to code**:
+    * Generate functions from descriptions
+    * Create classes, interfaces, types
+    * Implement algorithms (sorting, searching, etc.)
+  - **Code completion**:
+    * Intelligent autocomplete (context-aware)
+    * Suggest entire functions/methods
+    * Generate boilerplate (getters/setters, constructors)
+  - **Testing**:
+    * Generate unit tests (Jest, pytest, JUnit)
+    * Create test fixtures and mocks
+    * Generate edge case tests
+  - **Conversion**:
+    * Translate code between languages (Python ↔ JavaScript, etc.)
+    * Convert SQL queries to ORM code
+    * Transform callbacks to async/await
+  - **Utilities**:
+    * Generate regex patterns from examples
+    * Create SQL queries from natural language
+    * Build API requests (cURL, Postman)
+
+- [ ] **21.20** Development workflow integration
+  - **Git integration**:
+    * Generate commit messages from diff
+    * Create pull request descriptions
+    * Summarize code changes
+    * Suggest semantic versioning (major/minor/patch)
+  - **Code review**:
+    * Review code for bugs, performance, style
+    * Suggest improvements and alternatives
+    * Check for common mistakes
+  - **Documentation**:
+    * Generate README.md from project structure
+    * Create API documentation
+    * Write changelog from Git history
+  - **Debugging**:
+    * Explain error messages and stack traces
+    * Suggest fixes for common errors
+    * Debug logic errors
+  - **Dependencies**:
+    * Analyze and visualize dependency tree
+    * Suggest package updates
+    * Find alternative packages
+    * Detect security vulnerabilities in dependencies
+
+#### 🟡 Document & Office Integration (MEDIUM Priority)
+- [ ] **21.21** Microsoft Office deep integration
+  - **Word**:
+    * Real-time grammar and style checking
+    * Document summarization and outline generation
+    * Rewrite paragraphs with tone adjustment
+    * Generate content from bullet points
+    * Track changes suggestions
+  - **Excel**:
+    * Natural language formula generation: "sum of column A where B > 10"
+    * Data analysis and insights
+    * Chart type recommendations
+    * Pivot table suggestions
+    * Data cleaning (remove duplicates, fill missing)
+  - **PowerPoint**:
+    * Generate slide content from outline
+    * Design suggestions and layout improvements
+    * Speaker notes generation
+    * Slide summarization
+  - **Outlook**:
+    * Email writing assistance (tone, clarity, length)
+    * Smart reply suggestions (3-5 quick responses)
+    * Email categorization and prioritization
+    * Meeting scheduler (find available times)
+
+- [ ] **21.22** PDF advanced operations
+  - **Text extraction**:
+    * Extract text with layout preservation
+    * Handle multi-column layouts
+    * Extract tables accurately
+    * Image and caption extraction
+  - **Analysis**:
+    * Summarize PDFs by section/chapter
+    * Extract key information (dates, names, amounts)
+    * Answer questions about PDF content
+    * Generate outline/table of contents
+  - **Conversion**:
+    * PDF to Word/Excel/PowerPoint (editable)
+    * PDF to Markdown/HTML
+    * Preserve formatting, images, links
+  - **Operations**:
+    * Split PDF by pages, sections, bookmarks
+    * Merge multiple PDFs intelligently
+    * Compress PDF with quality control
+    * Redact sensitive information
+
+- [ ] **21.23** Note-taking app integration
+  - **Obsidian integration**:
+    * Auto-generate backlinks and tags
+    * Suggest related notes
+    * Create knowledge graph
+    * Daily note template filling
+  - **Notion integration**:
+    * Database auto-population
+    * Template selection based on content
+    * Property suggestions
+  - **OneNote/Evernote**:
+    * Smart note organization
+    * Tag generation from content
+    * Note summarization
+  - **General features**:
+    * Meeting notes from transcription
+    * Voice memo to formatted notes
+    * Image to text notes (OCR)
+    * Web clipper integration
+
+#### 🟡 Advanced Features (MEDIUM Priority)
+- [ ] **21.24** Multi-step conversation mode
+  - **Conversation management**:
+    * Maintain context across multiple queries
+    * Follow-up questions with memory
+    * Reference previous responses
+    * Conversation branching (explore alternatives)
+  - **Organization**:
+    * Save conversations with titles
+    * Resume previous conversations
+    * Conversation history with search
+    * Export conversations (Markdown, PDF, JSON)
+  - **Templates**:
+    * Workflow templates (research, writing, debugging)
+    * Conversation starters for common tasks
+    * Guided conversation flows
+
+- [ ] **21.25** Voice input and output (Speech AI)
+  - **Speech-to-text**:
+    * Multilingual voice input (50+ languages)
+    * Real-time transcription with streaming
+    * Punctuation auto-insertion
+    * Accent and dialect support
+    * Background noise filtering
+  - **Text-to-speech**:
+    * Natural-sounding voices (11labs, Azure Cognitive Services)
+    * Multiple voice options (male, female, accents)
+    * Adjustable speed and pitch
+    * Read responses aloud
+  - **Voice commands**:
+    * Hands-free operation
+    * "Save this", "Copy response", "Search for..."
+    * Wake word detection (optional)
+
+- [ ] **21.26** Smart clipboard management
+  - **Clipboard history**:
+    * Track all clipboard entries (text, images, files)
+    * AI categorization (code, URLs, emails, addresses, etc.)
+    * Search clipboard history
+    * Pin frequently used items
+  - **Smart paste**:
+    * Format detection (paste as plain text, markdown, code)
+    * Transform on paste (uppercase, lowercase, title case)
+    * Multi-paste (paste multiple clipboard items in sequence)
+  - **Security**:
+    * Sensitive data detection (passwords, credit cards, SSNs)
+    * Auto-clear sensitive items after time
+    * Encrypted clipboard storage
+  - **Sync** (optional):
+    * Cross-device clipboard sync
+    * Cloud backup of clipboard history
+
+- [ ] **21.27** Task and workflow automation
+  - **Quick actions library**:
+    * Pre-built actions (translate, summarize, explain, format, etc.)
+    * Custom action creation with templates
+    * Action chaining (multi-step workflows)
+  - **Automation**:
+    * IFTTT-style rules: "If I copy a URL, summarize the page"
+    * Scheduled queries and reports
+    * Auto-response rules
+    * Trigger actions on file/clipboard changes
+  - **Macros**:
+    * Record action sequences
+    * Playback with one click
+    * Assign hotkeys to macros
+
+- [ ] **21.28** Data analysis and visualization
+  - **Data import**:
+    * Load CSV, Excel, JSON, XML files
+    * Connect to databases (SQLite, MySQL, PostgreSQL)
+    * Web scraping for data
+  - **Natural language queries**:
+    * "Show me average sales by region"
+    * "Find outliers in column A"
+    * "Predict next month's revenue"
+  - **Analysis**:
+    * Statistical analysis (mean, median, std dev, correlation)
+    * Trend detection and forecasting
+    * Anomaly detection
+    * Data cleaning suggestions
+  - **Visualization**:
+    * Auto-generate charts (bar, line, pie, scatter, heatmap)
+    * Interactive dashboards
+    * Export charts as images/HTML
+
+- [ ] **21.29** Email intelligence
+  - **Composition**:
+    * Smart reply suggestions (3-5 options)
+    * Email templates by type
+    * Tone adjustment (professional, friendly, assertive)
+    * Grammar and clarity check
+  - **Analysis**:
+    * Email summarization (TL;DR)
+    * Sentiment analysis
+    * Priority detection (urgent, action-needed, FYI)
+    * Extract action items and deadlines
+  - **Organization**:
+    * Auto-categorization and labeling
+    * Thread summarization
+    * Contact relationship mapping
+    * Find related emails
+
+- [ ] **21.30** Calendar and scheduling
+  - **Natural language events**:
+    * "Meeting with John next Tuesday at 2pm" → Auto-create event
+    * Parse date/time from text
+    * Handle recurring events
+  - **Optimization**:
+    * Suggest best meeting times
+    * Detect scheduling conflicts
+    * Travel time consideration
+    * Buffer time between meetings
+  - **Integration**:
+    * Extract schedules from emails
+    * Sync with Google Calendar, Outlook, etc.
+    * Time zone management
+    * Smart reminders
+
+- [ ] **21.31** Research assistant
+  - **Multi-source research**:
+    * Aggregate information from web, PDFs, documents
+    * Cross-reference facts
+    * Detect contradictions
+    * Build knowledge base
+  - **Academic tools**:
+    * Citation generation (APA, MLA, Chicago, IEEE)
+    * Bibliography management
+    * Reference formatting
+  - **Analysis**:
+    * Research paper summarization
+    * Methodology extraction
+    * Results and conclusions
+    * Keyword extraction
+  - **Organization**:
+    * Literature review assistance
+    * Note-taking and annotation
+    * Source tracking
+
+- [ ] **21.32** Image and media analysis
+  - **Image analysis**:
+    * Auto-generate descriptions and alt text
+    * Object detection and recognition
+    * Face detection (with privacy controls)
+    * Image quality assessment
+    * Duplicate image detection (perceptual hashing)
+  - **Media organization**:
+    * Auto-tagging based on content
+    * Smart albums/collections
+    * Suggest best photos (quality, composition)
+  - **Editing**:
+    * Batch resize, crop, rotate
+    * Format conversion
+    * Metadata editing (EXIF, IPTC)
+    * Watermark addition
+
+- [ ] **21.33** Privacy and security features
+  - **Local processing**:
+    * Offline mode (use local AI models only)
+    * No cloud sync option
+    * Data never leaves device
+  - **Data protection**:
+    * Sensitive data filtering (auto-detect and redact)
+    * Encrypted conversation storage (AES-256)
+    * Privacy-aware context capture (user opt-in)
+    * User data anonymization
+  - **Transparency**:
+    * Audit logs for data access
+    * Clear privacy policy
+    * User consent for each feature
+    * Data deletion on demand
+
+- [ ] **21.34** Learning and personalization
+  - **Adaptive AI**:
+    * Learn from user corrections and preferences
+    * Personalized response style
+    * Custom vocabulary and terminology
+    * Industry-specific knowledge
+  - **Context awareness**:
+    * Remember user preferences (formality, language, tone)
+    * Suggest based on usage patterns
+    * Predictive suggestions
+  - **Analytics**:
+    * Usage pattern analysis
+    * Feature discovery suggestions
+    * Productivity insights
+  - **Customization**:
+    * Adaptive UI (show/hide features based on usage)
+    * Custom themes and layouts
+    * Workflow optimization suggestions
+
+- [ ] **21.35** Collaboration features
+  - **Sharing**:
+    * Share queries and responses with team
+    * Collaborative annotations
+    * Team knowledge base
+  - **Team libraries**:
+    * Shared quick actions
+    * Team templates
+    * Common workflows
+  - **Permissions**:
+    * Role-based access control
+    * Private vs shared conversations
+    * Team admin controls
+
+#### 🟢 Integration & Extension (LOW Priority)
+- [ ] **21.36** Integration APIs and plugin system
+  - **REST API**:
+    * External apps can send queries
+    * Webhook support
+    * Rate limiting and authentication
+  - **WebSocket**:
+    * Real-time bidirectional communication
+    * Streaming responses
+  - **Plugin system**:
+    * Custom AI model support (local models, custom APIs)
+    * Extension marketplace
+    * Third-party integrations (Zapier, IFTTT, Make)
+  - **SDKs**:
+    * JavaScript, Python, C# SDKs
+    * Example integrations
+
+- [ ] **21.37** Mobile companion app
+  - **Cross-device sync**:
+    * Conversation history sync
+    * Settings and preferences sync
+    * Clipboard sync (optional)
+  - **Mobile features**:
+    * Mobile-optimized UI
+    * Camera input for OCR and visual queries
+    * Location-aware features
+    * Voice input (more natural on mobile)
+  - **Offline mode**:
+    * Local AI models on mobile
+    * Sync when online
+
+- [ ] **21.38** Accessibility features
+  - **Screen reader support**:
+    * ARIA labels and semantic HTML
+    * Keyboard navigation descriptions
+    * Screen reader announcements
+  - **Visual accessibility**:
+    * High contrast themes
+    * Customizable font sizes
+    * Dyslexia-friendly fonts (OpenDyslexic)
+    * Color blind modes
+  - **Motor accessibility**:
+    * Keyboard-only navigation
+    * Voice-only operation mode
+    * Sticky keys support
+    * Large click targets
+
+- [ ] **21.39** Performance and optimization
+  - **Speed**:
+    * Response caching (frequently asked questions)
+    * Predictive pre-loading (anticipate next query)
+    * Background indexing (don't block UI)
+  - **Resource management**:
+    * Monitor CPU, RAM, GPU usage
+    * Battery-aware processing (reduce on battery)
+    * Bandwidth optimization (compress data, batch requests)
+    * Lazy loading of features
+  - **Benchmarking**:
+    * Performance metrics dashboard
+    * Compare with previous versions
+    * Identify bottlenecks
+
+- [ ] **21.40** Analytics and insights
+  - **Usage statistics**:
+    * Most used features
+    * Query types and patterns
+    * Time saved vs manual work
+  - **Productivity metrics**:
+    * Daily/weekly/monthly usage
+    * Tasks completed
+    * Time spent per feature
+  - **Insights**:
+    * Feature recommendations
+    * Workflow optimization suggestions
+    * Identify unused features
+  - **Privacy-first**:
+    * All analytics local (no telemetry)
+    * User opt-in
+    * Anonymous aggregation only
 
 ### 22. Data Sync & Backup
 - [ ] **22.1** Implement local-first backup strategy
