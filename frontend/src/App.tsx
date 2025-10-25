@@ -1,34 +1,35 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import OcrResultsModal from './components/OcrResultsModal'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [ocrText, setOcrText] = useState('')
+
+  // Demo function to show modal
+  const showModalDemo = () => {
+    setOcrText('This is a sample OCR text extracted from an image. It contains multiple lines of text that can be summarized, researched, or analyzed.')
+    setIsModalOpen(true)
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="app-container">
+      <h1>Ask OCR</h1>
+      <p>OCR Desktop Application with AI Integration</p>
+      
+      <div className="demo-section">
+        <button onClick={showModalDemo} className="btn-primary">
+          Show OCR Results Modal (Demo)
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+
+      <OcrResultsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        ocrText={ocrText}
+        language="eng"
+      />
+    </div>
   )
 }
 
