@@ -1,0 +1,330 @@
+/**
+ * Shadow System for Depth
+ * Comprehensive shadow definitions for creating visual hierarchy
+ */
+
+:root {
+  /* ===== ELEVATION SHADOWS ===== */
+  
+  /* Level 0 - No elevation */
+  --shadow-0: none;
+  
+  /* Level 1 - Subtle elevation (cards, buttons) */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  
+  /* Level 2 - Low elevation (hover states) */
+  --shadow-2: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  
+  /* Level 3 - Medium elevation (dropdowns, tooltips) */
+  --shadow-3: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  
+  /* Level 4 - High elevation (modals, popovers) */
+  --shadow-4: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  
+  /* Level 5 - Very high elevation (overlays) */
+  --shadow-5: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  
+  /* Level 6 - Maximum elevation (full-screen modals) */
+  --shadow-6: 0 25px 50px rgba(0, 0, 0, 0.15);
+  
+  /* ===== COMPONENT-SPECIFIC SHADOWS ===== */
+  
+  /* Button shadows */
+  --shadow-button-rest: var(--shadow-1);
+  --shadow-button-hover: var(--shadow-2);
+  --shadow-button-active: var(--shadow-0);
+  --shadow-button-focus: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  
+  /* Card shadows */
+  --shadow-card-rest: var(--shadow-1);
+  --shadow-card-hover: var(--shadow-3);
+  --shadow-card-elevated: var(--shadow-4);
+  
+  /* Input shadows */
+  --shadow-input-rest: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-input-focus: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  --shadow-input-error: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  --shadow-input-success: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  
+  /* Dropdown shadows */
+  --shadow-dropdown: var(--shadow-4);
+  --shadow-menu: var(--shadow-4);
+  --shadow-popover: var(--shadow-4);
+  
+  /* Modal shadows */
+  --shadow-modal: var(--shadow-6);
+  --shadow-dialog: var(--shadow-5);
+  --shadow-overlay: var(--shadow-4);
+  
+  /* Navigation shadows */
+  --shadow-navbar: var(--shadow-2);
+  --shadow-sidebar: var(--shadow-3);
+  --shadow-tab: var(--shadow-1);
+  
+  /* Notification shadows */
+  --shadow-toast: var(--shadow-4);
+  --shadow-alert: var(--shadow-3);
+  --shadow-tooltip: var(--shadow-3);
+  
+  /* ===== COLORED SHADOWS ===== */
+  
+  /* Primary colored shadows */
+  --shadow-primary-light: 0 4px 14px rgba(59, 130, 246, 0.15);
+  --shadow-primary-medium: 0 8px 25px rgba(59, 130, 246, 0.2);
+  --shadow-primary-heavy: 0 15px 35px rgba(59, 130, 246, 0.25);
+  
+  /* Success colored shadows */
+  --shadow-success-light: 0 4px 14px rgba(34, 197, 94, 0.15);
+  --shadow-success-medium: 0 8px 25px rgba(34, 197, 94, 0.2);
+  
+  /* Warning colored shadows */
+  --shadow-warning-light: 0 4px 14px rgba(245, 158, 11, 0.15);
+  --shadow-warning-medium: 0 8px 25px rgba(245, 158, 11, 0.2);
+  
+  /* Error colored shadows */
+  --shadow-error-light: 0 4px 14px rgba(239, 68, 68, 0.15);
+  --shadow-error-medium: 0 8px 25px rgba(239, 68, 68, 0.2);
+  
+  /* ===== INNER SHADOWS ===== */
+  
+  --shadow-inner-light: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-inner-medium: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-inner-heavy: inset 0 4px 8px rgba(0, 0, 0, 0.15);
+  
+  /* ===== GLOW EFFECTS ===== */
+  
+  --shadow-glow-primary: 0 0 20px rgba(59, 130, 246, 0.3);
+  --shadow-glow-success: 0 0 20px rgba(34, 197, 94, 0.3);
+  --shadow-glow-warning: 0 0 20px rgba(245, 158, 11, 0.3);
+  --shadow-glow-error: 0 0 20px rgba(239, 68, 68, 0.3);
+  
+  /* ===== OCR APP SPECIFIC SHADOWS ===== */
+  
+  /* OCR Modal shadows */
+  --shadow-ocr-modal: 0 25px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+  --shadow-ocr-overlay: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  
+  /* Screenshot selection shadows */
+  --shadow-screenshot-selection: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
+  --shadow-screenshot-handles: 0 2px 8px rgba(0, 0, 0, 0.15);
+  
+  /* Settings panel shadows */
+  --shadow-settings-panel: var(--shadow-3);
+  --shadow-settings-section: var(--shadow-1);
+  
+  /* History item shadows */
+  --shadow-history-item: var(--shadow-1);
+  --shadow-history-item-hover: var(--shadow-2);
+  --shadow-history-item-selected: var(--shadow-primary-light);
+  
+  /* Template card shadows */
+  --shadow-template-card: var(--shadow-1);
+  --shadow-template-card-hover: var(--shadow-3);
+  --shadow-template-card-selected: var(--shadow-primary-light);
+  
+  /* Status indicator shadows */
+  --shadow-status-online: var(--shadow-success-light);
+  --shadow-status-offline: var(--shadow-error-light);
+  --shadow-status-processing: var(--shadow-warning-light);
+}
+
+/* ===== DARK MODE SHADOW ADJUSTMENTS ===== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Adjust shadow opacity for dark mode */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-2: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-3: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-4: 0 10px 15px rgba(0, 0, 0, 0.4), 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-5: 0 20px 25px rgba(0, 0, 0, 0.5), 0 10px 10px rgba(0, 0, 0, 0.2);
+    --shadow-6: 0 25px 50px rgba(0, 0, 0, 0.6);
+    
+    /* Adjust colored shadows for dark mode */
+    --shadow-primary-light: 0 4px 14px rgba(96, 165, 250, 0.2);
+    --shadow-primary-medium: 0 8px 25px rgba(96, 165, 250, 0.25);
+    --shadow-primary-heavy: 0 15px 35px rgba(96, 165, 250, 0.3);
+    
+    --shadow-success-light: 0 4px 14px rgba(74, 222, 128, 0.2);
+    --shadow-success-medium: 0 8px 25px rgba(74, 222, 128, 0.25);
+    
+    --shadow-warning-light: 0 4px 14px rgba(251, 191, 36, 0.2);
+    --shadow-warning-medium: 0 8px 25px rgba(251, 191, 36, 0.25);
+    
+    --shadow-error-light: 0 4px 14px rgba(248, 113, 113, 0.2);
+    --shadow-error-medium: 0 8px 25px rgba(248, 113, 113, 0.25);
+    
+    /* Adjust glow effects for dark mode */
+    --shadow-glow-primary: 0 0 20px rgba(96, 165, 250, 0.4);
+    --shadow-glow-success: 0 0 20px rgba(74, 222, 128, 0.4);
+    --shadow-glow-warning: 0 0 20px rgba(251, 191, 36, 0.4);
+    --shadow-glow-error: 0 0 20px rgba(248, 113, 113, 0.4);
+  }
+}
+
+/* ===== SHADOW UTILITY CLASSES ===== */
+
+/* Elevation shadows */
+.shadow-0 { box-shadow: var(--shadow-0); }
+.shadow-1 { box-shadow: var(--shadow-1); }
+.shadow-2 { box-shadow: var(--shadow-2); }
+.shadow-3 { box-shadow: var(--shadow-3); }
+.shadow-4 { box-shadow: var(--shadow-4); }
+.shadow-5 { box-shadow: var(--shadow-5); }
+.shadow-6 { box-shadow: var(--shadow-6); }
+
+/* Component shadows */
+.shadow-button { box-shadow: var(--shadow-button-rest); }
+.shadow-button-hover { box-shadow: var(--shadow-button-hover); }
+.shadow-button-active { box-shadow: var(--shadow-button-active); }
+
+.shadow-card { box-shadow: var(--shadow-card-rest); }
+.shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+.shadow-card-elevated { box-shadow: var(--shadow-card-elevated); }
+
+.shadow-dropdown { box-shadow: var(--shadow-dropdown); }
+.shadow-menu { box-shadow: var(--shadow-menu); }
+.shadow-popover { box-shadow: var(--shadow-popover); }
+
+.shadow-modal { box-shadow: var(--shadow-modal); }
+.shadow-dialog { box-shadow: var(--shadow-dialog); }
+.shadow-overlay { box-shadow: var(--shadow-overlay); }
+
+.shadow-toast { box-shadow: var(--shadow-toast); }
+.shadow-alert { box-shadow: var(--shadow-alert); }
+.shadow-tooltip { box-shadow: var(--shadow-tooltip); }
+
+/* Colored shadows */
+.shadow-primary-light { box-shadow: var(--shadow-primary-light); }
+.shadow-primary-medium { box-shadow: var(--shadow-primary-medium); }
+.shadow-primary-heavy { box-shadow: var(--shadow-primary-heavy); }
+
+.shadow-success-light { box-shadow: var(--shadow-success-light); }
+.shadow-success-medium { box-shadow: var(--shadow-success-medium); }
+
+.shadow-warning-light { box-shadow: var(--shadow-warning-light); }
+.shadow-warning-medium { box-shadow: var(--shadow-warning-medium); }
+
+.shadow-error-light { box-shadow: var(--shadow-error-light); }
+.shadow-error-medium { box-shadow: var(--shadow-error-medium); }
+
+/* Inner shadows */
+.shadow-inner-light { box-shadow: var(--shadow-inner-light); }
+.shadow-inner-medium { box-shadow: var(--shadow-inner-medium); }
+.shadow-inner-heavy { box-shadow: var(--shadow-inner-heavy); }
+
+/* Glow effects */
+.shadow-glow-primary { box-shadow: var(--shadow-glow-primary); }
+.shadow-glow-success { box-shadow: var(--shadow-glow-success); }
+.shadow-glow-warning { box-shadow: var(--shadow-glow-warning); }
+.shadow-glow-error { box-shadow: var(--shadow-glow-error); }
+
+/* OCR app specific shadows */
+.shadow-ocr-modal { box-shadow: var(--shadow-ocr-modal); }
+.shadow-screenshot-selection { box-shadow: var(--shadow-screenshot-selection); }
+.shadow-settings-panel { box-shadow: var(--shadow-settings-panel); }
+.shadow-history-item { box-shadow: var(--shadow-history-item); }
+.shadow-template-card { box-shadow: var(--shadow-template-card); }
+
+/* ===== HOVER SHADOW EFFECTS ===== */
+
+.hover-shadow-1:hover { box-shadow: var(--shadow-1); }
+.hover-shadow-2:hover { box-shadow: var(--shadow-2); }
+.hover-shadow-3:hover { box-shadow: var(--shadow-3); }
+.hover-shadow-4:hover { box-shadow: var(--shadow-4); }
+
+.hover-shadow-card:hover { box-shadow: var(--shadow-card-hover); }
+.hover-shadow-button:hover { box-shadow: var(--shadow-button-hover); }
+
+/* ===== FOCUS SHADOW EFFECTS ===== */
+
+.focus-shadow-primary:focus { box-shadow: var(--shadow-button-focus); }
+.focus-shadow-input:focus { box-shadow: var(--shadow-input-focus); }
+.focus-shadow-error:focus { box-shadow: var(--shadow-input-error); }
+.focus-shadow-success:focus { box-shadow: var(--shadow-input-success); }
+
+/* ===== ACTIVE SHADOW EFFECTS ===== */
+
+.active-shadow-0:active { box-shadow: var(--shadow-0); }
+.active-shadow-button:active { box-shadow: var(--shadow-button-active); }
+
+/* ===== SHADOW TRANSITIONS ===== */
+
+.shadow-transition {
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.shadow-transition-fast {
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.shadow-transition-slow {
+  transition: box-shadow var(--duration-slow) var(--ease-out);
+}
+
+/* ===== SHADOW COMBINATIONS ===== */
+
+/* Button with shadow states */
+.btn-with-shadows {
+  box-shadow: var(--shadow-button-rest);
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.btn-with-shadows:hover {
+  box-shadow: var(--shadow-button-hover);
+}
+
+.btn-with-shadows:active {
+  box-shadow: var(--shadow-button-active);
+}
+
+.btn-with-shadows:focus {
+  box-shadow: var(--shadow-button-focus);
+}
+
+/* Card with shadow states */
+.card-with-shadows {
+  box-shadow: var(--shadow-card-rest);
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.card-with-shadows:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Input with shadow states */
+.input-with-shadows {
+  box-shadow: var(--shadow-input-rest);
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.input-with-shadows:focus {
+  box-shadow: var(--shadow-input-focus);
+}
+
+.input-with-shadows.error:focus {
+  box-shadow: var(--shadow-input-error);
+}
+
+.input-with-shadows.success:focus {
+  box-shadow: var(--shadow-input-success);
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Use will-change for elements that will have shadow animations */
+.shadow-optimized {
+  will-change: box-shadow;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .shadow-transition,
+  .shadow-transition-fast,
+  .shadow-transition-slow,
+  .btn-with-shadows,
+  .card-with-shadows,
+  .input-with-shadows {
+    transition: none;
+  }
+}

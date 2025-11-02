@@ -1,0 +1,418 @@
+/* Math Formula Preview Styles */
+
+.math-preview-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: #f0f9ff;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e40af;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #bfdbfe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.math-preview-empty {
+  padding: 24px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.math-preview-empty p {
+  margin: 0 0 16px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.math-help {
+  text-align: left;
+  background-color: white;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.math-help summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+  font-size: 13px;
+  user-select: none;
+}
+
+.math-help summary:hover {
+  color: #2563eb;
+}
+
+.math-symbols-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.math-symbols-grid div {
+  padding: 6px 10px;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.math-symbols-grid code {
+  background-color: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+/* Main Preview */
+.math-formula-preview {
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.math-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.math-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.btn-toggle-preview {
+  background-color: white;
+  border: 1px solid #fbbf24;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #92400e;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle-preview:hover {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+}
+
+/* Formulas List */
+.formulas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.formula-item {
+  background-color: white;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.formula-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.formula-index {
+  background-color: #fbbf24;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.formula-type {
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.formula-confidence {
+  color: #059669;
+  font-weight: 500;
+}
+
+.formula-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formula-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formula-section label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formula-section code {
+  background-color: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  color: #374151;
+  display: block;
+  word-wrap: break-word;
+}
+
+.latex-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.latex-display code {
+  flex: 1;
+}
+
+.btn-copy-small {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-copy-small:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.05);
+}
+
+/* Converted Text */
+.converted-text-section {
+  background-color: white;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-header h5 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.latex-preview {
+  background-color: #f9fafb;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  color: #374151;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Common Formulas */
+.common-formulas {
+  background-color: white;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.common-formulas summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #92400e;
+  font-size: 13px;
+  user-select: none;
+  margin-bottom: 12px;
+}
+
+.common-formulas summary:hover {
+  color: #f59e0b;
+}
+
+.formula-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.example-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  background-color: #fffbeb;
+  border-radius: 4px;
+  border: 1px solid #fef3c7;
+}
+
+.example-item strong {
+  color: #92400e;
+  font-size: 13px;
+}
+
+.example-item code {
+  background-color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  color: #374151;
+  border: 1px solid #fde68a;
+  word-wrap: break-word;
+}
+
+.example-desc {
+  font-size: 12px;
+  color: #78350f;
+  font-style: italic;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .math-preview-loading {
+    background-color: #1e3a8a;
+    color: #bfdbfe;
+  }
+
+  .spinner-small {
+    border-color: #1e3a8a;
+    border-top-color: #60a5fa;
+  }
+
+  .math-preview-empty {
+    background-color: #1f2937;
+  }
+
+  .math-preview-empty p {
+    color: #9ca3af;
+  }
+
+  .math-help {
+    background-color: #111827;
+    border-color: #374151;
+  }
+
+  .math-help summary {
+    color: #d1d5db;
+  }
+
+  .math-symbols-grid div {
+    background-color: #1f2937;
+  }
+
+  .math-symbols-grid code {
+    background-color: #374151;
+    color: #e5e7eb;
+  }
+
+  .math-formula-preview {
+    background-color: #78350f;
+    border-color: #92400e;
+  }
+
+  .math-header h4 {
+    color: #fde68a;
+  }
+
+  .btn-toggle-preview {
+    background-color: #92400e;
+    border-color: #b45309;
+    color: #fef3c7;
+  }
+
+  .btn-toggle-preview:hover {
+    background-color: #b45309;
+  }
+
+  .formula-item {
+    background-color: #92400e;
+    border-color: #b45309;
+  }
+
+  .formula-section code {
+    background-color: #78350f;
+    color: #fef3c7;
+  }
+
+  .converted-text-section,
+  .common-formulas {
+    background-color: #92400e;
+    border-color: #b45309;
+  }
+
+  .section-header h5,
+  .common-formulas summary {
+    color: #fef3c7;
+  }
+
+  .latex-preview {
+    background-color: #78350f;
+    border-color: #92400e;
+    color: #fef3c7;
+  }
+
+  .example-item {
+    background-color: #78350f;
+    border-color: #92400e;
+  }
+
+  .example-item code {
+    background-color: #92400e;
+    border-color: #b45309;
+    color: #fef3c7;
+  }
+
+  .example-desc {
+    color: #fde68a;
+  }
+}

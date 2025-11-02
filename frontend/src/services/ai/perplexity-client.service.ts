@@ -98,7 +98,11 @@ export class PerplexityClient {
     // Build user message with context
     let userContent = request.prompt;
     if (request.context) {
-      userContent = `Based on this context:\n\n${request.context}\n\n${request.prompt}`;
+      userContent = `Based on this context:
+
+${request.context}
+
+${request.prompt}`;
     }
 
     messages.push({

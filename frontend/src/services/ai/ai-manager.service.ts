@@ -287,7 +287,8 @@ export class AIIntegrationManager {
     // Simple combination strategy - can be enhanced
     const contents = results.map((r) => {
       const label = r.provider.toUpperCase();
-      return `### ${label} Response:\n${r.content}`;
+      return `### ${label} Response:
+${r.content}`;
     });
 
     return contents.join('\n\n---\n\n');

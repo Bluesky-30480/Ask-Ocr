@@ -46,7 +46,9 @@ export class PromptEngineeringService {
       type: 'summarize',
       name: 'Text Summarization',
       systemPrompt: `You are an expert text summarizer. Create clear, concise summaries that capture the main points and key information from the provided text. Focus on the most important details.`,
-      userPromptTemplate: `Please provide a comprehensive summary of the following text:\n\n{{ocrText}}`,
+      userPromptTemplate: `Please provide a comprehensive summary of the following text:
+
+{{ocrText}}`,
       description: 'Generate a concise summary of OCR text',
       variables: ['ocrText'],
     });
@@ -56,7 +58,11 @@ export class PromptEngineeringService {
       type: 'research',
       name: 'Web Research',
       systemPrompt: `You are a research assistant with access to web search. Provide accurate, well-sourced information with citations. Focus on recent, reliable sources.`,
-      userPromptTemplate: `Based on this text, research and provide detailed information:\n\n{{ocrText}}\n\nAdditional query: {{userQuery}}`,
+      userPromptTemplate: `Based on this text, research and provide detailed information:
+
+{{ocrText}}
+
+Additional query: {{userQuery}}`,
       description: 'Research topics from OCR text with web sources',
       variables: ['ocrText', 'userQuery'],
     });
@@ -66,7 +72,12 @@ export class PromptEngineeringService {
       type: 'question',
       name: 'Question Answering',
       systemPrompt: `You are a helpful assistant that answers questions based on provided context. Give clear, accurate answers supported by the text.`,
-      userPromptTemplate: `Context:\n{{ocrText}}\n\nQuestion: {{userQuery}}\n\nPlease answer the question based on the context above.`,
+      userPromptTemplate: `Context:
+{{ocrText}}
+
+Question: {{userQuery}}
+
+Please answer the question based on the context above.`,
       description: 'Answer questions about OCR text',
       variables: ['ocrText', 'userQuery'],
     });
@@ -76,7 +87,9 @@ export class PromptEngineeringService {
       type: 'translate',
       name: 'Translation',
       systemPrompt: `You are a professional translator. Provide accurate translations while preserving the original meaning, tone, and context.`,
-      userPromptTemplate: `Translate the following text from {{language}} to English:\n\n{{ocrText}}`,
+      userPromptTemplate: `Translate the following text from {{language}} to English:
+
+{{ocrText}}`,
       description: 'Translate OCR text to another language',
       variables: ['ocrText', 'language'],
     });
@@ -86,7 +99,9 @@ export class PromptEngineeringService {
       type: 'extract',
       name: 'Information Extraction',
       systemPrompt: `You are an information extraction specialist. Extract structured information from text, including names, dates, locations, emails, phone numbers, and other relevant data.`,
-      userPromptTemplate: `Extract all relevant information from this text in a structured format:\n\n{{ocrText}}`,
+      userPromptTemplate: `Extract all relevant information from this text in a structured format:
+
+{{ocrText}}`,
       description: 'Extract structured information from OCR text',
       variables: ['ocrText'],
     });
@@ -96,7 +111,9 @@ export class PromptEngineeringService {
       type: 'analyze',
       name: 'Content Analysis',
       systemPrompt: `You are a content analyst. Analyze the text for key themes, sentiment, entities, and important patterns. Provide insights and observations.`,
-      userPromptTemplate: `Analyze the following text and provide insights:\n\n{{ocrText}}`,
+      userPromptTemplate: `Analyze the following text and provide insights:
+
+{{ocrText}}`,
       description: 'Analyze OCR text for themes and patterns',
       variables: ['ocrText'],
     });
@@ -106,7 +123,11 @@ export class PromptEngineeringService {
       type: 'math',
       name: 'Math Problem Solving',
       systemPrompt: `You are a mathematics expert. Help solve math problems, explain solutions step-by-step, and convert mathematical notation to standard formats when needed.`,
-      userPromptTemplate: `Help with this math problem or equation:\n\n{{ocrText}}\n\nProvide a step-by-step solution and explanation.`,
+      userPromptTemplate: `Help with this math problem or equation:
+
+{{ocrText}}
+
+Provide a step-by-step solution and explanation.`,
       description: 'Solve math problems from OCR text',
       variables: ['ocrText'],
     });
@@ -145,12 +166,16 @@ export class PromptEngineeringService {
 
     // Add confidence note if low
     if (context.confidence !== undefined && context.confidence < 0.7) {
-      userPrompt += `\n\n(Note: OCR confidence is ${(context.confidence * 100).toFixed(0)}%, text may contain errors)`;
+      userPrompt += `
+
+(Note: OCR confidence is ${(context.confidence * 100).toFixed(0)}%, text may contain errors)`;
     }
 
     // Add additional context if provided
     if (context.additionalContext) {
-      userPrompt += `\n\nAdditional context: ${context.additionalContext}`;
+      userPrompt += `
+
+Additional context: ${context.additionalContext}`;
     }
 
     return {
@@ -199,7 +224,9 @@ export class PromptEngineeringService {
       .replace(/\{\{userQuery\}\}/g, context.userQuery || '');
 
     if (context.additionalContext) {
-      processedUserPrompt += `\n\nAdditional context: ${context.additionalContext}`;
+      processedUserPrompt += `
+
+Additional context: ${context.additionalContext}`;
     }
 
     return {
@@ -216,12 +243,16 @@ export class PromptEngineeringService {
 
     // Add language info
     if (context.language) {
-      enhanced = `Language: ${context.language}\n\n${enhanced}`;
+      enhanced = `Language: ${context.language}
+
+${enhanced}`;
     }
 
     // Add confidence warning
     if (context.confidence !== undefined && context.confidence < 0.8) {
-      enhanced = `[OCR Confidence: ${(context.confidence * 100).toFixed(0)}% - May contain errors]\n\n${enhanced}`;
+      enhanced = `[OCR Confidence: ${(context.confidence * 100).toFixed(0)}% - May contain errors]
+
+${enhanced}`;
     }
 
     return enhanced;

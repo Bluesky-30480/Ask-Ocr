@@ -1,0 +1,168 @@
+/**
+ * Toast Container Styles
+ * Positioning and layout for toast notifications
+ */
+
+.toast-container {
+  position: fixed;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  pointer-events: none;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.toast-container > * {
+  pointer-events: auto;
+}
+
+/* ===== POSITION VARIANTS ===== */
+
+.toast-container-top-right {
+  top: var(--spacing-6);
+  right: var(--spacing-6);
+  align-items: flex-end;
+}
+
+.toast-container-top-left {
+  top: var(--spacing-6);
+  left: var(--spacing-6);
+  align-items: flex-start;
+}
+
+.toast-container-bottom-right {
+  bottom: var(--spacing-6);
+  right: var(--spacing-6);
+  align-items: flex-end;
+  flex-direction: column-reverse;
+}
+
+.toast-container-bottom-left {
+  bottom: var(--spacing-6);
+  left: var(--spacing-6);
+  align-items: flex-start;
+  flex-direction: column-reverse;
+}
+
+.toast-container-top-center {
+  top: var(--spacing-6);
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.toast-container-bottom-center {
+  bottom: var(--spacing-6);
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+  flex-direction: column-reverse;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
+  .toast-container {
+    left: var(--spacing-4) !important;
+    right: var(--spacing-4) !important;
+    top: var(--spacing-4);
+    bottom: var(--spacing-4);
+    transform: none !important;
+    align-items: stretch !important;
+  }
+  
+  .toast-container-bottom-right,
+  .toast-container-bottom-left,
+  .toast-container-bottom-center {
+    top: auto;
+    bottom: var(--spacing-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    left: var(--spacing-2) !important;
+    right: var(--spacing-2) !important;
+    top: var(--spacing-2);
+    bottom: var(--spacing-2);
+  }
+  
+  .toast-container-bottom-right,
+  .toast-container-bottom-left,
+  .toast-container-bottom-center {
+    bottom: var(--spacing-2);
+  }
+}
+
+/* ===== STACKING AND OVERFLOW ===== */
+
+.toast-container {
+  max-width: 480px;
+}
+
+@media (max-width: 768px) {
+  .toast-container {
+    max-width: none;
+  }
+}
+
+/* ===== ANIMATION STAGGER ===== */
+
+.toast-container > .toast:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.toast-container > .toast:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.toast-container > .toast:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.toast-container > .toast:nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.toast-container > .toast:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+/* ===== SCROLL BEHAVIOR ===== */
+
+.toast-container {
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.toast-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* ===== BACKDROP BLUR SUPPORT ===== */
+
+@supports (backdrop-filter: blur(10px)) {
+  .toast-container {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-container > .toast {
+    animation-delay: 0ms !important;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+
+@media print {
+  .toast-container {
+    display: none;
+  }
+}"

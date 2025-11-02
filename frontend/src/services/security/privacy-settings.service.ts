@@ -317,7 +317,8 @@ export class PrivacySettingsService {
       ? enabledFeatures.join(', ')
       : 'No online features enabled';
 
-    return `${mode}\nEnabled features: ${features}`;
+    return `${mode}
+Enabled features: ${features}`;
   }
 }
 

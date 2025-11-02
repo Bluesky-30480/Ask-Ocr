@@ -319,26 +319,45 @@ export class PlatformTesterService {
     const summary = this.getTestSummary();
     const platform = platformService.getCurrentPlatform();
 
-    let report = `# Platform Compatibility Test Report\n\n`;
-    report += `**Platform**: ${platform}\n`;
-    report += `**Date**: ${new Date().toISOString()}\n`;
-    report += `**Pass Rate**: ${summary.passRate.toFixed(2)}%\n\n`;
+    let report = `# Platform Compatibility Test Report
 
-    report += `## Summary\n`;
-    report += `- Total Tests: ${summary.total}\n`;
-    report += `- Passed: ${summary.passed}\n`;
-    report += `- Failed: ${summary.failed}\n\n`;
+`;
+    report += `**Platform**: ${platform}
+`;
+    report += `**Date**: ${new Date().toISOString()}
+`;
+    report += `**Pass Rate**: ${summary.passRate.toFixed(2)}%
 
-    report += `## Test Results\n\n`;
+`;
+
+    report += `## Summary
+`;
+    report += `- Total Tests: ${summary.total}
+`;
+    report += `- Passed: ${summary.passed}
+`;
+    report += `- Failed: ${summary.failed}
+
+`;
+
+    report += `## Test Results
+
+`;
 
     this.results.forEach(result => {
       const status = result.passed ? '✅ PASS' : '❌ FAIL';
-      report += `### ${result.testName} - ${status}\n`;
-      report += `**Message**: ${result.message}\n`;
+      report += `### ${result.testName} - ${status}
+`;
+      report += `**Message**: ${result.message}
+`;
       if (result.details) {
-        report += `**Details**: \`\`\`json\n${JSON.stringify(result.details, null, 2)}\n\`\`\`\n`;
+        report += `**Details**: \`\`\`json
+${JSON.stringify(result.details, null, 2)}
+\`\`\`
+`;
       }
-      report += `\n`;
+      report += `
+`;
     });
 
     return report;

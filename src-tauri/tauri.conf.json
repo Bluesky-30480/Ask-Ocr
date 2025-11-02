@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "cd ../frontend && npm run build",
-    "beforeDevCommand": "cd ../frontend && npm run dev",
+    "beforeBuildCommand": "powershell -Command \"Set-Location ../frontend; npm run build\"",
+    "beforeDevCommand": "",
     "devPath": "http://localhost:5173",
     "distDir": "../frontend/dist"
   },

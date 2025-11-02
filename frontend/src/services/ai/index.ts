@@ -1,26 +1,28 @@
-/**
- * AI Services Index
- * Central export point for all AI-related services
- */
+export { enhancedPromptService } from './enhanced-prompt.service';
+export { promptTemplateManager } from './prompt-template-manager.service';
+export { promptOptimizerService } from './prompt-optimizer.service';
+export { conversationMemoryService } from './conversation-memory.service';
+export { aiManager } from './ai-manager.service';
 
-export { AIIntegrationManager, aiManager } from './ai-manager.service';
-export { OpenAIClient } from './openai-client.service';
-export { PerplexityClient } from './perplexity-client.service';
-export { PromptEngineeringService, promptService } from './prompt-engineering.service';
-export { OllamaManagerService, ollamaManager } from './ollama-manager.service';
+export type { 
+  EnhancedPromptTemplate, 
+  EnhancedPromptContext,
+  ConversationMemory 
+} from './enhanced-prompt.service';
 
-export type { PromptType, PromptTemplate, PromptContext } from './prompt-engineering.service';
-export type { OpenAIConfig } from './openai-client.service';
-export type { PerplexityConfig } from './perplexity-client.service';
-export type { OllamaModel, ModelDownloadProgress, OllamaStatus } from './ollama-manager.service';
+export type { 
+  CustomPromptTemplate, 
+  TemplateCategory,
+  TemplateLibrary 
+} from './prompt-template-manager.service';
 
-// AI types
+export type { 
+  OCRQualityMetrics, 
+  PromptOptimization 
+} from './prompt-optimizer.service';
+
 export type {
-  AIProvider,
-  AIModelConfig,
-  AIRequest,
-  AIResponse,
-  AISource,
-  MergedAIResult,
-  AIServiceStrategy,
-} from '@shared/types/ai.types';
+  ConversationSession,
+  ConversationSummary,
+  MemoryContext
+} from './conversation-memory.service';

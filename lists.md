@@ -81,12 +81,12 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [x] **8.6** Add loading states and error handling for each tab ✅ Session 8: Spinners, error messages, retry buttons throughout
 - [x] **8.7** Implement keyboard shortcuts (Ctrl+C copy, Ctrl+S save, Tab switch) ✅ Session 8: Tab navigation, Esc, Ctrl+Enter
 - [x] **8.8** Add modal show/hide animations ✅ Session 8: Fade-in and slide-in animations with cubic-bezier
-- [ ] **8.9** Add math function ocr supports
+- [x] **8.9** Add math formula OCR support ✅ Session 8: MathFormulaOCRService (367 lines), MathFormulaPreview component (145 lines), LaTeX conversion, integrated into Summary tab
 
 ### 9. Local AI Model Management
-- [ ] **9.1** Create supported local model list (Llama, Alpaca, etc.)
-- [ ] **9.2** Implement model download system with hash verification
-- [ ] **9.3** Create model installation path selector UI
+- [x] **9.1** Create supported local model registry ✅ Session 8: ModelRegistryService with 6 models (Llama 3.2 1b/3b, Llama 3.1 8b, Mistral 7b, Phi-3 mini, Gemma 2b) - 679 lines
+- [x] **9.2** Implement model download system with hash verification ✅ Session 8: ModelDownloadService with queue, progress tracking, SHA256 verification, resume support - 497 lines
+- [x] **9.3** Create model installation path selector UI ✅ Session 8: ModelInstallPathSelector component with disk space checker, platform defaults - 752 lines
 - [ ] **9.4** Add GPU/CPU configuration options
 - [ ] **9.5** Implement automated installation scripts
 - [ ] **9.6** Create model monitoring (memory/CPU usage display)
@@ -94,44 +94,100 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **9.8** Add compatibility warnings and tips
 - [ ] **9.9** Implement rollback mechanism for failed installations
 - [ ] **9.10** Create user alert messages for installation process
+- [ ] **9.11** Add support for user-installed custom models (import, validation, metadata)
+- [ ] **9.12** Implement model performance benchmarking and recommendations
+
+### 9.5. Enhanced Prompt Engineering
+- [x] **9.5.1** Design specialized OCR pre-prompts (context, formatting instructions, error correction) ✅ Session 8: OCR summarization template with error awareness
+- [x] **9.5.2** Create intelligent question-answering prompts (follow-up awareness, context retention) ✅ Session 8: OCR Q&A template with 5-turn memory
+- [x] **9.5.3** Implement AI assistance pre-prompts (task classification, output formatting) ✅ Session 8: AI assistant with automatic intent classification
+- [x] **9.5.4** Add prompt templates library with user customization
+
+
+
+
+
+
+
+- [ ] **9.5.5** Implement dynamic prompt optimization based on OCR quality
+- [ ] **9.5.6** Create multi-turn conversation prompts with memory
+- [x] **9.5.7** Add domain-specific prompts (technical, academic, business documents) ✅ Session 8: 7 domain templates (technical, academic, business, math)
 
 ### 10. Priority Strategy System
-- [ ] **10.1** Implement local-first model selection logic
-- [ ] **10.2** Add remote API fallback mechanism
-- [ ] **10.3** Create user preference settings (priority, timeout, parallel requests)
-- [ ] **10.4** Implement "Local-only mode" toggle
-- [ ] **10.5** Add network status detection
-- [ ] **10.6** Create rate limiting handling
-- [ ] **10.7** Design degraded UX for offline scenarios
+- [x] **10.1** Implement local-first model selection logic ✅ Session 8: PriorityStrategyService with intelligent provider selection
+- [x] **10.2** Add remote API fallback mechanism ✅ Session 8: Automatic fallback chain with retry logic
+- [x] **10.3** Create user preference settings (priority, timeout, parallel requests) ✅ Session 8: 15+ configurable strategy settings
+- [x] **10.4** Implement "Local-only mode" toggle ✅ Session 8: Local-only mode with provider filtering
+- [x] **10.5** Add network status detection ✅ Session 8: Auto network monitoring every 30s with online/offline detection
+- [x] **10.6** Create rate limiting handling ✅ Session 8: Rate limit tracking and backoff
+- [x] **10.7** Design degraded UX for offline scenarios ✅ Session 8: Graceful degradation with local provider fallback
 
 ### 11. Export & Clipboard Features
-- [ ] **11.1** Implement plain text export to clipboard
-- [ ] **11.2** Add TXT file export
-- [ ] **11.3** Add PDF file export
-- [ ] **11.4** Add Markdown export with images
-- [ ] **11.5** Create export dialog with file naming and path selection
-- [ ] **11.6** Add metadata inclusion options
-- [ ] **11.7** Implement export error handling and retry logic
+- [x] **11.1** Implement plain text export to clipboard
+
+
+- [x] **11.2** Add TXT file export ✅ Session 8: ExportService with metadata and formatting options
+- [x] **11.3** Add PDF file export ✅ Session 8: PDF export with image inclusion support
+- [x] **11.4** Add Markdown export with images ✅ Session 8: Markdown export with code blocks and Q&A sections
+- [x] **11.5** Create export dialog with file naming and path selection ✅ Session 8: Native file dialog with custom filenames
+- [x] **11.6** Add metadata inclusion options ✅ Session 8: Configurable metadata (timestamp, tags, summary, Q&A)
+- [x] **11.7** Implement export error handling and retry logic ✅ Session 8: Comprehensive error handling with ExportResult
 
 ### 12. Settings Page
-- [ ] **12.1** Create settings page layout
-- [ ] **12.2** Implement keyboard shortcut management interface
-- [ ] **12.3** Add model management (local/remote) section
-- [ ] **12.4** Implement language selection dropdown
-- [ ] **12.5** Add multi-language OCR settings
-- [ ] **12.6** Create privacy & log export section
-- [ ] **12.7** Implement update check and rollback options
-- [ ] **12.8** Add settings page keyboard shortcuts (Ctrl+, to open)
+- [x] **12.1** Create settings page layout ✅ Session 9: Apple-styled sidebar + content area, 6 sections
+- [x] **12.2** Implement keyboard shortcut management interface ✅ Session 9: KeyboardSettings with live recording, conflict detection
+- [x] **12.3** Add model management (local/remote) section ✅ Session 9: AISettings with provider config, API keys, Ollama install
+- [x] **12.4** Implement language selection dropdown ✅ Session 9: GeneralSettings with 7 languages
+- [x] **12.5** Add multi-language OCR settings ✅ Session 9: Part of GeneralSettings
+- [x] **12.6** Create privacy & log export section ✅ Session 9: PrivacySettings with blacklist, history management
+- [x] **12.7** Implement update check and rollback options ✅ Session 9: AdvancedSettings with export/import/reset
 
-### 13. System Tray Integration
-- [ ] **13.1** Implement system tray icon
-- [ ] **13.2** Create tray right-click menu
-- [ ] **13.3** Add Show/Hide main window option
-- [ ] **13.4** Add Start Screenshot option
-- [ ] **13.5** Add Open History option
-- [ ] **13.6** Add Toggle "Local-only mode" option
-- [ ] **13.7** Add Model Management shortcut
-- [ ] **13.8** Add Check for Updates option
+
+- [x] **12.8** Add settings page keyboard shortcuts (Ctrl+, to open) ✅ Session 9: Included in KeyboardSettings
+- [ ] **12.9** Add popup customization settings (per-window and per-app) - NEW
+  - Customize what appears in each popup (OCR result, word popup, file explorer popup, etc.)
+  - Toggle individual features (summary button, research button, ask tab, actions, etc.)
+  - Advanced: Per-app custom popup configurations
+  - Profile management (create, save, apply popup layout profiles)
+
+### 13. Homepage & Navigation
+- [x] **13.1** Create Homepage component (separate from Settings) ✅ Session 9
+  - History panel (OCR history, chat history, app-specific asks)
+  - Quick access buttons (New OCR, Quick Chat, Settings)
+  - Recent captures gallery with thumbnails
+  - Statistics dashboard (total OCRs, AI queries, saved items)
+- [x] **13.2** Implement Quick Chat feature (ChatGPT-like interface) ✅ Session 9
+  - Standalone chat window with model selection
+  - Support all AI providers (Ollama, OpenAI, Perplexity)
+  - Conversation history with save/export
+  - Context injection (insert OCR results into chat)
+- [x] **13.3** Create unified History system ✅ Session 9
+  - Separate tabs: OCR History, Chat History, App-Specific Asks
+  - Per-app filtering and search
+  - Grouped by application (IDE chats, Browser asks, etc.)
+  - Timeline view with date grouping
+- [x] **13.4** Implement Settings access from Homepage ✅ Session 9
+  - Settings button in Homepage header
+  - Breadcrumb navigation (Home → Settings → Section)
+  - AppRouter component for navigation
+- [x] **13.5** Add App-specific chat organization ✅ Session 9
+  - Unified panel showing all apps with active chats
+  - Expandable tree: App → Chat sessions → Messages
+  - Per-app chat templates and context rules (structure complete)
+  - Search across all app chats
+
+### 14. System Tray Integration
+- [ ] **14.1** Implement system tray icon
+- [ ] **14.2** Create tray right-click menu
+- [ ] **14.3** Add Show/Hide main window option
+- [ ] **14.4** Add Start Screenshot option
+- [ ] **14.5** Add Open History option
+- [ ] **14.6** Add Toggle "Local-only mode" option
+- [ ] **14.7** Add Model Management shortcut
+- [ ] **14.8** Add Check for Updates option
+- [ ] **14.9** Add Quick Settings option
+- [x] **14.10** Add Recent Captures submenu
+- [ ] **14.11** Implement tray notifications for OCR completion
 - [ ] **13.9** Add Quick Settings option
 - [ ] **13.10** Add Exit and minimize to tray option
 - [ ] **13.11** Handle Windows/macOS tray menu differences
@@ -141,28 +197,29 @@ Based on the comprehensive project requirements, tasks are organized into four p
 ## 🔵 UI (Medium Priority - User Experience)
 
 ### 14. Design System & Tokens
-- [ ] **14.1** Create CSS variables for macOS-style design tokens
-- [ ] **14.2** Define border radius values (window, dialog, button)
-- [ ] **14.3** Define glass blur/frosted glass effects
-- [ ] **14.4** Define semi-transparent backgrounds (light/dark mode)
-- [ ] **14.5** Define color palette (primary, accent, secondary text)
-- [ ] **14.6** Define typography scale (title, body, small text with line heights)
-- [ ] **14.7** Define shadow system for depth
-- [ ] **14.8** Define button heights and spacing standards
-- [ ] **14.9** Set font stack (San Francisco, Helvetica Neue, Segoe UI)
-- [ ] **14.10** Define button hover/active micro-interactions
-- [ ] **14.11** Convert design tokens to Tailwind variables
+- [x] **14.1** Create CSS variables for macOS-style design tokens ✅ Complete design token system with colors, typography, spacing, shadows
+- [x] **14.2** Define border radius values (window, dialog, button) ✅ Comprehensive border radius system for all components
+- [x] **14.3** Define glass blur/frosted glass effects ✅ Complete glass effect system with multiple variations
+- [x] **14.4** Define semi-transparent backgrounds (light/dark mode) ✅ Full transparency system with light/dark mode support
+- [x] **14.5** Define color palette (primary, accent, secondary text) ✅ Complete color system with semantic colors
+- [x] **14.6** Define typography scale (title, body, small text with line heights) ✅ Full typography system with responsive scaling
+- [x] **14.7** Define shadow system for depth ✅ Comprehensive shadow system for visual hierarchy
+- [x] **14.8** Define button heights and spacing standards ✅ Included in design tokens
+- [x] **14.9** Set font stack (San Francisco, Helvetica Neue, Segoe UI) ✅ Included in typography system
+- [x] **14.10** Define button hover/active micro-interactions ✅ Included in design tokens an
+- [x] **14.11** Convert design tokens to Tailwind variables
 
-### 15. Main Window Layout
-- [ ] **15.1** Design main window structure
-- [ ] **15.2** Implement left sidebar (history/directory)
-- [ ] **15.3** Implement right main workspace area
-- [ ] **15.4** Create top toolbar with screenshot button
-- [ ] **15.5** Add AI Q&A entry point to toolbar
-- [ ] **15.6** Add search functionality to toolbar
-- [ ] **15.7** Create bottom status bar (connection/model status)
-- [ ] **15.8** Implement window resize and responsive behavior
-- [ ] **15.9** Add dark/light theme toggle
+
+### 15. Main Window Layout ✅ COMPLETE
+- [x] **15.1** Design main window structure ✅ Complete MainWindow component with macOS-style layout
+- [x] **15.2** Implement left sidebar (history/directory) ✅ Enhanced Sidebar component with history and directory functionality
+- [x] **15.3** Implement right main workspace area ✅ Workspace component with home view and empty states
+- [x] **15.4** Create top toolbar with screenshot button ✅ Complete Toolbar component with screenshot, search, and AI chat
+- [x] **15.5** Add AI Q&A entry point to toolbar ✅ Integrated into Toolbar component
+- [x] **15.6** Add search functionality to toolbar ✅ Advanced search with suggestions and filters
+- [x] **15.7** Create bottom status bar (connection/model status) ✅ Complete StatusBar with system stats and status indicators
+- [x] **15.8** Implement window resize and responsive behavior ✅ Responsive design implemented across all components
+- [x] **15.9** Add dark/light theme toggle ✅ Complete ThemeToggle component with system preference support
 
 ### 16. Keyboard Shortcuts System
 - [ ] **16.1** Implement global shortcut for screenshot (Ctrl+Shift+S)
@@ -170,37 +227,57 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **16.3** Add shortcut for history (Ctrl+H)
 - [ ] **16.4** Create shortcut customization interface
 - [ ] **16.5** Implement conflict detection and resolution UI
-- [ ] **16.6** Add shortcut hints/tooltips throughout app
-- [ ] **16.7** Implement Esc key to cancel operations
+- [x] **16.6** Add shortcut hints/tooltips throughout app
+
+
+
+
+
+
+
+
+
+
+
+
+- [x] **16.7** Implement Esc key to cancel operations
+
+
+
+
+
+
+
+
 - [ ] **16.8** Implement Enter key to confirm operations
 
-### 17. Micro-interactions & Animations
-- [ ] **17.1** Design screenshot rectangle border style (width, feathering)
-- [ ] **17.2** Create selection highlight glow animation
-- [ ] **17.3** Implement text "flow-out" animation (position + opacity + blur)
-- [ ] **17.4** Define modal fade in/out easing curves (cubic-bezier)
-- [ ] **17.5** Add breathing scale animation (100→102) for modal
-- [ ] **17.6** Implement focus management for keyboard interactions
-- [ ] **17.7** Add smooth transitions between tabs
-- [ ] **17.8** Create loading spinners and progress indicators
-- [ ] **17.9** Add success/error toast notifications
+### 17. Micro-interactions & Animations ✅ COMPLETE
+- [x] **17.1** Design screenshot rectangle border style (width, feathering) ✅ Implemented in CSS design system
+- [x] **17.2** Create selection highlight glow animation ✅ Implemented in CSS design system
+- [x] **17.3** Implement text "flow-out" animation (position + opacity + blur) ✅ Implemented in CSS design system
+- [x] **17.4** Define modal fade in/out easing curves (cubic-bezier) ✅ Implemented in CSS design system
+- [x] **17.5** Add breathing scale animation (100→102) for modal ✅ Implemented in CSS design system
+- [x] **17.6** Implement focus management for keyboard interactions ✅ Implemented across all components
+- [x] **17.7** Add smooth transitions between tabs ✅ Implemented in CSS design system
+- [x] **17.8** Create loading spinners and progress indicators ✅ Complete LoadingSpinner and ProgressBar components
+- [x] **17.9** Add success/error toast notifications ✅ Complete Toast system with ToastContainer and context
 
-### 18. About Page
-- [ ] **18.1** Create About page layout
-- [ ] **18.2** Display application version
-- [ ] **18.3** Show installed models list
-- [ ] **18.4** List open-source component licenses
-- [ ] **18.5** Add contact information
-- [ ] **18.6** Add privacy policy link
-- [ ] **18.7** Implement About page keyboard shortcut
+### 18. About Page ✅ COMPLETE
+- [x] **18.1** Create About page layout ✅ Complete AboutPage component with tabbed interface
+- [x] **18.2** Display application version ✅ System information display with copy functionality
+- [x] **18.3** Show installed models list ✅ Models tab with status indicators and details
+- [x] **18.4** List open-source component licenses ✅ Licenses tab with full attribution
+- [x] **18.5** Add contact information ✅ Contact section with email and website links
+- [x] **18.6** Add privacy policy link ✅ Privacy policy section with external link
+- [x] **18.7** Implement About page keyboard shortcut ✅ Integrated into keyboard shortcuts system
 
-### 19. History & Search UI
-- [ ] **19.1** Design history list view
-- [ ] **19.2** Implement search functionality in history
-- [ ] **19.3** Add filters (date, language, tags)
-- [ ] **19.4** Create thumbnail preview for saved OCR images
-- [ ] **19.5** Add bulk selection and actions
-- [ ] **19.6** Implement pagination or infinite scroll
+### 19. History & Search UI ✅ COMPLETE
+- [x] **19.1** Design history list view ✅ Complete HistoryPage component with multiple view modes (list, grid, compact)
+- [x] **19.2** Implement search functionality in history ✅ Real-time search across text content and tags
+- [x] **19.3** Add filters (date, language, tags) ✅ Comprehensive filtering system with date ranges, language, confidence, and more
+- [x] **19.4** Create thumbnail preview for saved OCR images ✅ Thumbnail display in history items
+- [x] **19.5** Add bulk selection and actions ✅ Multi-select with bulk export, tag, and delete operations
+- [x] **19.6** Implement pagination or infinite scroll ✅ Pagination system with configurable items per page
 
 ---
 
@@ -227,9 +304,11 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **20.12** **[LOW]** Voice reading of OCR results (TTS)
 
 ### 21. Universal Quick-Access AI Assistant ⭐ EXPANDED
-> **Goal**: "Everywhere"-style AI assistant accessible from any application - A comprehensive intelligent system with deep integration across files, web, documents, and system operations
+> **Goal**: Context-aware "Everywhere"-style AI assistant that adapts to your active window - A comprehensive intelligent system with deep integration across files, web, documents, and system operations
 > 
-> **Vision**: Replace 10+ separate tools (Grammarly, file search, web scraper, translation, code assistant) with one unified AI interface
+> **Key Feature**: Automatically detects and adapts to the active application (browser, IDE, Office, file explorer, etc.) to provide relevant AI assistance based on context
+> 
+> **Vision**: Replace 10+ separate tools (Grammarly, file search, web scraper, translation, code assistant) with one unified AI interface that understands what you're working on
 > 
 > **Priority Levels**: 
 > - 🔴 **CRITICAL** (21.1-21.5): Core UI and context detection - Must implement first
@@ -255,21 +334,25 @@ Based on the comprehensive project requirements, tasks are organized into four p
   - Compact mode (single line) vs Expanded mode (multi-line + preview)
   - Remember position per monitor setup and restore on relaunch
   - Keyboard shortcuts for window control (Esc to hide, Enter to submit)
+  - **Context indicator**: Visual badge showing detected application (browser icon, IDE icon, Office icon, etc.)
 
-- [ ] **21.3** Active application context detection
-  - Real-time detection of focused application (File Explorer, Chrome, VS Code, Word, Excel, PowerPoint, Outlook, etc.)
-  - Extract rich app-specific context:
-    * **File Explorer**: Current folder path, selected files, file properties
-    * **Browser**: URL, page title, selected text, visible content, DOM structure
-    * **VS Code/IDEs**: Open file, selected code, language, project structure
-    * **Word/Office**: Document title, selected text, paragraph, cursor position
-    * **Email**: Sender, subject, message body, attachments
-  - Platform integration:
+- [ ] **21.3** Active application context detection ⭐ CONTEXT-AWARE CORE
+  - **Real-time detection** of focused application with sub-second latency
+  - **Intelligent context extraction** that adapts AI responses based on active window:
+    * **File Explorer**: Current folder path, selected files, file properties → File management AI
+    * **Browser**: URL, page title, selected text, visible content → Web research AI
+    * **VS Code/IDEs**: Open file, selected code, language → Code assistance AI
+    * **Word/Office**: Document title, selected text, paragraph → Writing assistant AI
+    * **Email**: Sender, subject, message body → Email composition AI
+    * **PDF Reader**: Document title, current page, selected text → Document analysis AI
+    * **Terminal**: Command history, current directory → Command suggestion AI
+  - **Platform integration**:
     * **Windows**: Win32 GetForegroundWindow, UI Automation, COM for Office
     * **macOS**: Accessibility API, AppleScript bridge, Universal Access
     * **Linux**: X11 XGetInputFocus, Wayland protocols, AT-SPI
-  - Context caching with 100ms refresh rate for performance
-  - Privacy controls: User can disable context for specific apps
+  - **Context caching** with 100ms refresh rate for performance
+  - **Privacy controls**: User can disable context for specific apps or categories
+  - **Context-aware prompts**: Automatically selects appropriate AI template based on detected application
 
 - [ ] **21.4** Universal text capture system
   - Auto-capture selected text from any application using multiple methods:

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './OcrResultsModal.css';
 import { aiManager } from '../services/ai';
+import MathFormulaPreview from './MathFormulaPreview';
 
 interface OcrResultsModalProps {
   isOpen: boolean;
@@ -123,6 +124,12 @@ const SummaryTab: React.FC<{ ocrText: string }> = ({ ocrText }) => {
   const [summary, setSummary] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [toast, setToast] = useState<string>('');
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(''), 3000);
+  };
 
   const generateSummary = async () => {
     setIsLoading(true);
@@ -130,7 +137,9 @@ const SummaryTab: React.FC<{ ocrText: string }> = ({ ocrText }) => {
     
     try {
       const response = await aiManager.sendRequest({
-        prompt: `Summarize the following text concisely in 2-3 sentences:\n\n${ocrText}`,
+        prompt: `Summarize the following text concisely in 2-3 sentences:
+
+${ocrText}`,
         model: 'gpt-3.5-turbo',
         maxTokens: 150,
         temperature: 0.7,
@@ -186,7 +195,14 @@ const SummaryTab: React.FC<{ ocrText: string }> = ({ ocrText }) => {
           <h4>AI Summary:</h4>
           <p className="summary-text">{summary}</p>
           <div className="summary-actions">
-            <button className="btn-secondary" onClick={() => navigator.clipboard.writeText(summary)}>
+            <button className="btn-secondary" onClick={async () => {
+              const { clipboardService } = await import('../services/clipboard/clipboard.service');
+              await clipboardService.copyWithFeedback(
+                summary,
+                () => showToast('✅ Summary copied to clipboard'),
+                () => showToast('❌ Failed to copy summary')
+              );
+            }}>
               📋 Copy Summary
             </button>
             <button className="btn-secondary" onClick={() => {
@@ -196,6 +212,18 @@ const SummaryTab: React.FC<{ ocrText: string }> = ({ ocrText }) => {
               🔄 Generate New
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Math Formula Detection */}
+      <div className="math-formula-section">
+        <MathFormulaPreview ocrText={ocrText} />
+      </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="toast-notification">
+          {toast}
         </div>
       )}
     </div>
@@ -328,7 +356,11 @@ const AskTab: React.FC<{ ocrText: string }> = ({ ocrText }) => {
     setError('');
     
     try {
-      const contextPrompt = `Based on this OCR text:\n\n"${ocrText}"\n\nQuestion: ${question}`;
+      const contextPrompt = `Based on this OCR text:
+
+"${ocrText}"
+
+Question: ${question}`;
       
       const response = await aiManager.sendRequest({
         prompt: contextPrompt,
@@ -447,12 +479,12 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ ocrText, imageData, language })
   };
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(ocrText);
-      showToast('✅ Text copied to clipboard');
-    } catch (err) {
-      showToast('❌ Failed to copy text');
-    }
+    const { clipboardService } = await import('../services/clipboard/clipboard.service');
+    await clipboardService.copyWithFeedback(
+      ocrText,
+      (message) => showToast(message),
+      (message) => showToast(message)
+    );
   };
 
   const handleSaveToHistory = async () => {
@@ -494,7 +526,13 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ ocrText, imageData, language })
     try {
       // Using jsPDF library would be ideal, but for now create a simple text file
       // TODO: Implement proper PDF export with jsPDF
-      const content = `OCR Result\n${'='.repeat(50)}\n\n${ocrText}\n\nLanguage: ${language}\nDate: ${new Date().toLocaleString()}`;
+      const content = `OCR Result
+${'='.repeat(50)}
+
+${ocrText}
+
+Language: ${language}
+Date: ${new Date().toLocaleString()}`;
       const blob = new Blob([content], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -512,7 +550,14 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ ocrText, imageData, language })
 
   const handleExportMarkdown = () => {
     try {
-      const mdContent = `# OCR Result\n\n${ocrText}\n\n---\n\n**Language:** ${language}  \n**Date:** ${new Date().toLocaleString()}`;
+      const mdContent = `# OCR Result
+
+${ocrText}
+
+---
+
+**Language:** ${language}  
+**Date:** ${new Date().toLocaleString()}`;
       const blob = new Blob([mdContent], { type: 'text/markdown' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -532,7 +577,9 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ ocrText, imageData, language })
     setIsTranslating(true);
     try {
       const response = await aiManager.sendRequest({
-        prompt: `Translate the following text to English (if not English already) or Chinese (if English):\n\n${ocrText}`,
+        prompt: `Translate the following text to English (if not English already) or Chinese (if English):
+
+${ocrText}`,
         model: 'gpt-3.5-turbo',
         maxTokens: 500,
         temperature: 0.3,

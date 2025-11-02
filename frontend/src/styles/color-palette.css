@@ -1,0 +1,474 @@
+/**
+ * Comprehensive Color Palette
+ * Complete color system with primary, accent, semantic, and text colors
+ */
+
+:root {
+  /* ===== PRIMARY COLORS ===== */
+  
+  /* Primary Blue - Main brand color */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;  /* Base primary */
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+  
+  /* Primary aliases for easy use */
+  --color-primary: var(--color-primary-600);
+  --color-primary-light: var(--color-primary-400);
+  --color-primary-dark: var(--color-primary-800);
+  --color-primary-hover: var(--color-primary-700);
+  --color-primary-active: var(--color-primary-800);
+  
+  /* ===== ACCENT COLORS ===== */
+  
+  /* Blue Accent */
+  --color-accent-blue-light: #60a5fa;
+  --color-accent-blue: #3b82f6;
+  --color-accent-blue-dark: #1d4ed8;
+  
+  /* Purple Accent */
+  --color-accent-purple-light: #c084fc;
+  --color-accent-purple: #a855f7;
+  --color-accent-purple-dark: #7c3aed;
+  
+  /* Pink Accent */
+  --color-accent-pink-light: #f472b6;
+  --color-accent-pink: #ec4899;
+  --color-accent-pink-dark: #be185d;
+  
+  /* Red Accent */
+  --color-accent-red-light: #f87171;
+  --color-accent-red: #ef4444;
+  --color-accent-red-dark: #dc2626;
+  
+  /* Orange Accent */
+  --color-accent-orange-light: #fb923c;
+  --color-accent-orange: #f97316;
+  --color-accent-orange-dark: #ea580c;
+  
+  /* Yellow Accent */
+  --color-accent-yellow-light: #fbbf24;
+  --color-accent-yellow: #f59e0b;
+  --color-accent-yellow-dark: #d97706;
+  
+  /* Green Accent */
+  --color-accent-green-light: #4ade80;
+  --color-accent-green: #22c55e;
+  --color-accent-green-dark: #16a34a;
+  
+  /* Teal Accent */
+  --color-accent-teal-light: #2dd4bf;
+  --color-accent-teal: #14b8a6;
+  --color-accent-teal-dark: #0f766e;
+  
+  /* ===== SEMANTIC COLORS ===== */
+  
+  /* Success Colors */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;  /* Base success */
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+  
+  /* Warning Colors */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;  /* Base warning */
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  
+  /* Error Colors */
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;  /* Base error */
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  
+  /* Info Colors */
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;  /* Base info */
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+  
+  /* ===== NEUTRAL COLORS (LIGHT MODE) ===== */
+  
+  /* Gray Scale */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+  
+  /* Background Colors */
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-background-tertiary: #f3f4f6;
+  --color-background-quaternary: #e5e7eb;
+  
+  /* Surface Colors */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-surface-tertiary: #f3f4f6;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: rgba(255, 255, 255, 0.95);
+  
+  /* ===== TEXT COLORS (LIGHT MODE) ===== */
+  
+  /* Primary Text */
+  --color-text-primary: #111827;
+  --color-text-primary-hover: #000000;
+  
+  /* Secondary Text */
+  --color-text-secondary: #4b5563;
+  --color-text-secondary-hover: #374151;
+  
+  /* Tertiary Text */
+  --color-text-tertiary: #6b7280;
+  --color-text-tertiary-hover: #4b5563;
+  
+  /* Quaternary Text */
+  --color-text-quaternary: #9ca3af;
+  --color-text-quaternary-hover: #6b7280;
+  
+  /* Disabled Text */
+  --color-text-disabled: #d1d5db;
+  
+  /* Inverse Text */
+  --color-text-inverse: #ffffff;
+  
+  /* Link Text */
+  --color-text-link: var(--color-primary);
+  --color-text-link-hover: var(--color-primary-hover);
+  --color-text-link-visited: var(--color-accent-purple);
+  
+  /* ===== BORDER COLORS (LIGHT MODE) ===== */
+  
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-border-tertiary: #9ca3af;
+  --color-border-focus: var(--color-primary);
+  --color-border-error: var(--color-error-500);
+  --color-border-success: var(--color-success-500);
+  --color-border-warning: var(--color-warning-500);
+  
+  /* ===== SHADOW COLORS ===== */
+  
+  --color-shadow-light: rgba(0, 0, 0, 0.05);
+  --color-shadow-medium: rgba(0, 0, 0, 0.1);
+  --color-shadow-heavy: rgba(0, 0, 0, 0.15);
+  --color-shadow-colored: rgba(59, 130, 246, 0.15);
+}
+
+/* ===== DARK MODE COLOR OVERRIDES ===== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Primary Colors - Adjusted for dark mode */
+    --color-primary: #60a5fa;
+    --color-primary-light: #93c5fd;
+    --color-primary-dark: #3b82f6;
+    --color-primary-hover: #93c5fd;
+    --color-primary-active: #bfdbfe;
+    
+    /* Accent Colors - Brighter for dark mode */
+    --color-accent-blue: #60a5fa;
+    --color-accent-purple: #c084fc;
+    --color-accent-pink: #f472b6;
+    --color-accent-red: #f87171;
+    --color-accent-orange: #fb923c;
+    --color-accent-yellow: #fbbf24;
+    --color-accent-green: #4ade80;
+    --color-accent-teal: #2dd4bf;
+    
+    /* Semantic Colors - Adjusted for dark mode */
+    --color-success-500: #4ade80;
+    --color-warning-500: #fbbf24;
+    --color-error-500: #f87171;
+    --color-info-500: #60a5fa;
+    
+    /* Background Colors - Dark mode */
+    --color-background-primary: #000000;
+    --color-background-secondary: #111827;
+    --color-background-tertiary: #1f2937;
+    --color-background-quaternary: #374151;
+    
+    /* Surface Colors - Dark mode */
+    --color-surface-primary: #111827;
+    --color-surface-secondary: #1f2937;
+    --color-surface-tertiary: #374151;
+    --color-surface-elevated: #1f2937;
+    --color-surface-overlay: rgba(17, 24, 39, 0.95);
+    
+    /* Text Colors - Dark mode */
+    --color-text-primary: #f9fafb;
+    --color-text-primary-hover: #ffffff;
+    --color-text-secondary: #d1d5db;
+    --color-text-secondary-hover: #f3f4f6;
+    --color-text-tertiary: #9ca3af;
+    --color-text-tertiary-hover: #d1d5db;
+    --color-text-quaternary: #6b7280;
+    --color-text-quaternary-hover: #9ca3af;
+    --color-text-disabled: #4b5563;
+    --color-text-inverse: #111827;
+    
+    /* Border Colors - Dark mode */
+    --color-border-primary: #374151;
+    --color-border-secondary: #4b5563;
+    --color-border-tertiary: #6b7280;
+    
+    /* Shadow Colors - Dark mode */
+    --color-shadow-light: rgba(0, 0, 0, 0.3);
+    --color-shadow-medium: rgba(0, 0, 0, 0.4);
+    --color-shadow-heavy: rgba(0, 0, 0, 0.5);
+    --color-shadow-colored: rgba(96, 165, 250, 0.2);
+  }
+}
+
+/* ===== UTILITY CLASSES FOR COLORS ===== */
+
+/* Primary Colors */
+.text-primary { color: var(--color-primary); }
+.text-primary-light { color: var(--color-primary-light); }
+.text-primary-dark { color: var(--color-primary-dark); }
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-light { background-color: var(--color-primary-light); }
+.bg-primary-dark { background-color: var(--color-primary-dark); }
+.border-primary { border-color: var(--color-primary); }
+
+/* Accent Colors */
+.text-accent-blue { color: var(--color-accent-blue); }
+.text-accent-purple { color: var(--color-accent-purple); }
+.text-accent-pink { color: var(--color-accent-pink); }
+.text-accent-red { color: var(--color-accent-red); }
+.text-accent-orange { color: var(--color-accent-orange); }
+.text-accent-yellow { color: var(--color-accent-yellow); }
+.text-accent-green { color: var(--color-accent-green); }
+.text-accent-teal { color: var(--color-accent-teal); }
+
+.bg-accent-blue { background-color: var(--color-accent-blue); }
+.bg-accent-purple { background-color: var(--color-accent-purple); }
+.bg-accent-pink { background-color: var(--color-accent-pink); }
+.bg-accent-red { background-color: var(--color-accent-red); }
+.bg-accent-orange { background-color: var(--color-accent-orange); }
+.bg-accent-yellow { background-color: var(--color-accent-yellow); }
+.bg-accent-green { background-color: var(--color-accent-green); }
+.bg-accent-teal { background-color: var(--color-accent-teal); }
+
+/* Semantic Colors */
+.text-success { color: var(--color-success-500); }
+.text-warning { color: var(--color-warning-500); }
+.text-error { color: var(--color-error-500); }
+.text-info { color: var(--color-info-500); }
+
+.bg-success { background-color: var(--color-success-500); }
+.bg-warning { background-color: var(--color-warning-500); }
+.bg-error { background-color: var(--color-error-500); }
+.bg-info { background-color: var(--color-info-500); }
+
+.border-success { border-color: var(--color-success-500); }
+.border-warning { border-color: var(--color-warning-500); }
+.border-error { border-color: var(--color-error-500); }
+.border-info { border-color: var(--color-info-500); }
+
+/* Text Colors */
+.text-primary-color { color: var(--color-text-primary); }
+.text-secondary-color { color: var(--color-text-secondary); }
+.text-tertiary-color { color: var(--color-text-tertiary); }
+.text-quaternary-color { color: var(--color-text-quaternary); }
+.text-disabled { color: var(--color-text-disabled); }
+.text-inverse { color: var(--color-text-inverse); }
+.text-link { color: var(--color-text-link); }
+
+/* Background Colors */
+.bg-background-primary { background-color: var(--color-background-primary); }
+.bg-background-secondary { background-color: var(--color-background-secondary); }
+.bg-background-tertiary { background-color: var(--color-background-tertiary); }
+.bg-surface-primary { background-color: var(--color-surface-primary); }
+.bg-surface-secondary { background-color: var(--color-surface-secondary); }
+.bg-surface-tertiary { background-color: var(--color-surface-tertiary); }
+.bg-surface-elevated { background-color: var(--color-surface-elevated); }
+
+/* Border Colors */
+.border-primary-color { border-color: var(--color-border-primary); }
+.border-secondary-color { border-color: var(--color-border-secondary); }
+.border-tertiary-color { border-color: var(--color-border-tertiary); }
+.border-focus { border-color: var(--color-border-focus); }
+
+/* ===== HOVER STATES ===== */
+
+.hover-text-primary:hover { color: var(--color-primary-hover); }
+.hover-bg-primary:hover { background-color: var(--color-primary-hover); }
+.hover-border-primary:hover { border-color: var(--color-primary-hover); }
+
+.hover-text-secondary:hover { color: var(--color-text-secondary-hover); }
+.hover-text-tertiary:hover { color: var(--color-text-tertiary-hover); }
+
+/* ===== FOCUS STATES ===== */
+
+.focus-border-primary:focus { border-color: var(--color-border-focus); }
+.focus-text-primary:focus { color: var(--color-primary); }
+
+/* ===== ACTIVE STATES ===== */
+
+.active-bg-primary:active { background-color: var(--color-primary-active); }
+.active-text-primary:active { color: var(--color-primary-active); }
+
+/* ===== COLOR COMBINATIONS ===== */
+
+/* Primary button style */
+.btn-primary-colors {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+}
+
+.btn-primary-colors:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-primary-colors:active {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+/* Secondary button style */
+.btn-secondary-colors {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-secondary-colors:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+/* Ghost button style */
+.btn-ghost-colors {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border-color: transparent;
+}
+
+.btn-ghost-colors:hover {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+/* Success button style */
+.btn-success-colors {
+  background-color: var(--color-success-500);
+  color: var(--color-text-inverse);
+  border-color: var(--color-success-500);
+}
+
+/* Warning button style */
+.btn-warning-colors {
+  background-color: var(--color-warning-500);
+  color: var(--color-text-inverse);
+  border-color: var(--color-warning-500);
+}
+
+/* Error button style */
+.btn-error-colors {
+  background-color: var(--color-error-500);
+  color: var(--color-text-inverse);
+  border-color: var(--color-error-500);
+}
+
+/* ===== OCR APP SPECIFIC COLOR COMBINATIONS ===== */
+
+/* OCR Modal colors */
+.ocr-modal-colors {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-primary);
+}
+
+/* Settings panel colors */
+.settings-panel-colors {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+}
+
+/* History item colors */
+.history-item-colors {
+  background-color: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-primary);
+}
+
+.history-item-colors:hover {
+  background-color: var(--color-surface-secondary);
+}
+
+.history-item-colors.selected {
+  background-color: var(--color-primary-50);
+  border-color: var(--color-primary);
+}
+
+/* Template card colors */
+.template-card-colors {
+  background-color: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-primary);
+}
+
+.template-card-colors:hover {
+  background-color: var(--color-surface-secondary);
+  border-color: var(--color-border-secondary);
+}
+
+/* Status indicator colors */
+.status-online-colors {
+  background-color: var(--color-success-100);
+  color: var(--color-success-700);
+  border-color: var(--color-success-300);
+}
+
+.status-offline-colors {
+  background-color: var(--color-error-100);
+  color: var(--color-error-700);
+  border-color: var(--color-error-300);
+}
+
+.status-processing-colors {
+  background-color: var(--color-warning-100);
+  color: var(--color-warning-700);
+  border-color: var(--color-warning-300);
+}

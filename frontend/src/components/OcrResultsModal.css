@@ -223,6 +223,11 @@
   flex-wrap: wrap;
 }
 
+/* Math Formula Section */
+.math-formula-section {
+  margin-top: 24px;
+}
+
 .btn-secondary {
   background-color: white;
   color: #2563eb;

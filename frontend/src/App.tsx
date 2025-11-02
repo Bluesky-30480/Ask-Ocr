@@ -1,36 +1,30 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
-import OcrResultsModal from './components/OcrResultsModal'
+import { AppRouter } from './components/AppRouter/AppRouter'
+import { systemTrayService } from './services/system-tray/system-tray.service'
+import { globalShortcutsService } from './services/shortcuts/global-shortcuts.service'
 
 function App() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [ocrText, setOcrText] = useState('')
-
-  // Demo function to show modal
-  const showModalDemo = () => {
-    setOcrText('This is a sample OCR text extracted from an image. It contains multiple lines of text that can be summarized, researched, or analyzed.')
-    setIsModalOpen(true)
-  }
-
-  return (
-    <div className="app-container">
-      <h1>Ask OCR</h1>
-      <p>OCR Desktop Application with AI Integration</p>
+  // Initialize system tray and global shortcuts on mount
+  useEffect(() => {
+    const initializeServices = async () => {
+      // Initialize system tray
+      await systemTrayService.initialize();
+      await systemTrayService.requestNotificationPermission();
       
-      <div className="demo-section">
-        <button onClick={showModalDemo} className="btn-primary">
-          Show OCR Results Modal (Demo)
-        </button>
-      </div>
+      // Initialize global shortcuts
+      await globalShortcutsService.initialize();
+    };
+    
+    initializeServices();
+    
+    return () => {
+      systemTrayService.dispose();
+      globalShortcutsService.dispose();
+    };
+  }, []);
 
-      <OcrResultsModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        ocrText={ocrText}
-        language="eng"
-      />
-    </div>
-  )
+  return <AppRouter />
 }
 
 export default App

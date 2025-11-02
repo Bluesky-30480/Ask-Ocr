@@ -5,6 +5,8 @@
 mod shortcuts;
 mod screenshot;
 mod database;
+mod context;
+mod tray;
 
 use shortcuts::ShortcutState;
 use database::Database;
@@ -17,7 +19,12 @@ fn greet(name: &str) -> String {
 }
 
 fn main() {
+    // Create system tray
+    let system_tray = tray::create_system_tray();
+    
     tauri::Builder::default()
+        .system_tray(system_tray)
+        .on_system_tray_event(tray::handle_system_tray_event)
         .manage(ShortcutState::new())
         .setup(|app| {
             // Initialize database
@@ -60,6 +67,21 @@ fn main() {
             // Database commands - Migrations
             database::get_database_version,
             database::get_migration_history,
+            // Context detection commands
+            context::get_active_window_info,
+            context::get_browser_context,
+            context::get_editor_context,
+            context::get_office_context,
+            context::get_file_explorer_context,
+            context::get_terminal_context,
+            context::get_selected_text,
+            // System tray commands
+            tray::tray_set_tooltip,
+            tray::tray_set_offline_mode,
+            tray::tray_update_recent_captures,
+            tray::show_main_window,
+            tray::hide_main_window,
+            tray::toggle_main_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
