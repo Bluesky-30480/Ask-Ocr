@@ -90,8 +90,14 @@ export const AppRouter: React.FC = () => {
         // Use native Windows Snipping Tool
         await performOcr('native-region');
       } else {
-        // Show region selector overlay
-        setShowRegionSelector(true);
+        // Show region selector overlay in a new transparent fullscreen window
+        try {
+          await invoke('show_screenshot_overlay');
+        } catch (error) {
+          console.error('Failed to show overlay:', error);
+          // Fallback to local overlay if window creation fails (might work if window is already maximized)
+          setShowRegionSelector(true);
+        }
       }
     } else {
       // Capture fullscreen directly

@@ -5,46 +5,46 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background-color: #f0f9ff;
+  background-color: var(--color-background-secondary);
   border-radius: 8px;
   font-size: 14px;
-  color: #1e40af;
+  color: var(--color-primary);
 }
 
 .spinner-small {
   width: 20px;
   height: 20px;
-  border: 2px solid #bfdbfe;
-  border-top-color: #2563eb;
+  border: 2px solid var(--color-border-primary);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .math-preview-empty {
   padding: 24px;
-  background-color: #f9fafb;
+  background-color: var(--color-background-secondary);
   border-radius: 8px;
   text-align: center;
 }
 
 .math-preview-empty p {
   margin: 0 0 16px 0;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
 .math-help {
   text-align: left;
-  background-color: white;
+  background-color: var(--color-surface);
   padding: 12px;
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-secondary);
 }
 
 .math-help summary {
   cursor: pointer;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-primary);
   font-size: 13px;
   user-select: none;
 }

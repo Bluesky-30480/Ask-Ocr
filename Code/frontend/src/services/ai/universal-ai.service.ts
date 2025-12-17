@@ -3,13 +3,18 @@
  * Unified interface for all AI providers with intelligent routing and fallback
  */
 
-import type { AIRequest, AIResponse } from '@shared/types/ai.types';
+import type { AIRequest, AIResponse, AIAttachment } from '@shared/types/ai.types';
 import type { ApplicationContext } from '../context/active-window-context.service';
 import type { EnhancedTemplateId } from '../context/context-aware-routing.service';
 import { contextAwareRouting } from '../context/context-aware-routing.service';
 import { priorityStrategy } from './priority-strategy.service';
 import { enhancedPromptService } from './enhanced-prompt.service';
 import { OpenAIClient } from './openai-client.service';
+import { GeminiClient } from './gemini-client.service';
+import { ClaudeClient } from './claude-client.service';
+import { DeepSeekClient } from './deepseek-client.service';
+import { GrokClient } from './grok-client.service';
+import { PerplexityClient } from './perplexity-client.service';
 import { ollamaManager } from './ollama-manager.service';
 
 export interface UniversalAIRequest {
@@ -19,11 +24,16 @@ export interface UniversalAIRequest {
   conversationHistory?: Array<{ role: string; content: string }>;
   
   // Optional overrides
-  forceProvider?: 'local' | 'custom' | 'openai' | 'perplexity';
+  forceProvider?: 'local' | 'custom' | 'openai' | 'perplexity' | 'gemini' | 'claude' | 'deepseek' | 'grok';
   forceModel?: string;
   forceTemplate?: EnhancedTemplateId;
   temperature?: number;
   maxTokens?: number;
+  
+  // Advanced capabilities
+  enableDeepThinking?: boolean;
+  enableWebSearch?: boolean;
+  attachments?: AIAttachment[];
 }
 
 export interface UniversalAIResponse {
@@ -33,10 +43,13 @@ export interface UniversalAIResponse {
   template: EnhancedTemplateId;
   confidence: number;
   routingReason?: string;
+  thinkingProcess?: string;
+  sources?: Array<{ title: string; url?: string; snippet?: string }>;
   usage?: {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
+    thinkingTokens?: number;
   };
   timestamp: number;
 }
@@ -48,15 +61,52 @@ export interface StreamChunk {
 
 export class UniversalAIService {
   private openaiClient?: OpenAIClient;
+  private geminiClient?: GeminiClient;
+  private claudeClient?: ClaudeClient;
+  private deepseekClient?: DeepSeekClient;
+  private grokClient?: GrokClient;
+  private perplexityClient?: PerplexityClient;
   private streamCallbacks: Map<string, (chunk: StreamChunk) => void> = new Map();
 
   /**
    * Initialize AI service with API keys
    */
-  async initialize(config: { openaiApiKey?: string }): Promise<void> {
+  async initialize(config: { 
+    openaiApiKey?: string;
+    geminiApiKey?: string;
+    claudeApiKey?: string;
+    deepseekApiKey?: string;
+    grokApiKey?: string;
+    perplexityApiKey?: string;
+  }): Promise<void> {
     if (config.openaiApiKey) {
       this.openaiClient = new OpenAIClient({
         apiKey: config.openaiApiKey,
+      });
+    }
+    if (config.geminiApiKey) {
+      this.geminiClient = new GeminiClient({
+        apiKey: config.geminiApiKey,
+      });
+    }
+    if (config.claudeApiKey) {
+      this.claudeClient = new ClaudeClient({
+        apiKey: config.claudeApiKey,
+      });
+    }
+    if (config.deepseekApiKey) {
+      this.deepseekClient = new DeepSeekClient({
+        apiKey: config.deepseekApiKey,
+      });
+    }
+    if (config.grokApiKey) {
+      this.grokClient = new GrokClient({
+        apiKey: config.grokApiKey,
+      });
+    }
+    if (config.perplexityApiKey) {
+      this.perplexityClient = new PerplexityClient({
+        apiKey: config.perplexityApiKey,
       });
     }
   }
@@ -125,6 +175,9 @@ export class UniversalAIService {
         temperature: request.temperature,
         maxTokens: request.maxTokens,
         model,
+        enableDeepThinking: request.enableDeepThinking,
+        enableWebSearch: request.enableWebSearch,
+        attachments: request.attachments,
       };
 
       const response = await this.sendToProvider(provider, aiRequest);
@@ -136,6 +189,8 @@ export class UniversalAIService {
         template,
         confidence: response.confidence || 0.8,
         routingReason,
+        thinkingProcess: response.thinkingProcess,
+        sources: response.sources,
         usage: response.usage,
         timestamp: Date.now(),
       };
@@ -202,7 +257,7 @@ export class UniversalAIService {
    * Send request to specific provider
    */
   private async sendToProvider(
-    provider: 'local' | 'custom' | 'openai' | 'perplexity',
+    provider: 'local' | 'custom' | 'openai' | 'perplexity' | 'gemini' | 'claude' | 'deepseek' | 'grok',
     request: AIRequest
   ): Promise<AIResponse> {
     switch (provider) {
@@ -216,9 +271,35 @@ export class UniversalAIService {
         }
         return await this.openaiClient.sendRequest(request);
       
+      case 'gemini':
+        if (!this.geminiClient) {
+          throw new Error('Gemini client not initialized. Please add your API key in settings.');
+        }
+        return await this.geminiClient.sendRequest(request);
+      
+      case 'claude':
+        if (!this.claudeClient) {
+          throw new Error('Claude client not initialized. Please add your API key in settings.');
+        }
+        return await this.claudeClient.sendRequest(request);
+      
+      case 'deepseek':
+        if (!this.deepseekClient) {
+          throw new Error('DeepSeek client not initialized. Please add your API key in settings.');
+        }
+        return await this.deepseekClient.sendRequest(request);
+      
+      case 'grok':
+        if (!this.grokClient) {
+          throw new Error('Grok client not initialized. Please add your API key in settings.');
+        }
+        return await this.grokClient.sendRequest(request);
+      
       case 'perplexity':
-        // TODO: Implement Perplexity client
-        throw new Error('Perplexity provider not implemented yet');
+        if (!this.perplexityClient) {
+          throw new Error('Perplexity client not initialized. Please add your API key in settings.');
+        }
+        return await this.perplexityClient.sendRequest(request);
       
       default:
         throw new Error(`Unknown provider: ${provider}`);
@@ -431,8 +512,9 @@ Selected text: "${context.selectedText.substring(0, 200)}${
    */
   async chat(
     message: string,
-    provider: 'local' | 'openai' | 'perplexity' = 'local',
-    model?: string
+    provider: 'local' | 'openai' | 'perplexity' | 'gemini' | 'claude' | 'deepseek' | 'grok' = 'local',
+    model?: string,
+    attachments?: AIAttachment[]
   ): Promise<{ text: string; provider: string; model: string }> {
     try {
       const response = await this.sendRequest({
@@ -440,6 +522,7 @@ Selected text: "${context.selectedText.substring(0, 200)}${
         forceProvider: provider,
         forceModel: model,
         forceTemplate: 'ai_assistant',
+        attachments,
       });
 
       return {

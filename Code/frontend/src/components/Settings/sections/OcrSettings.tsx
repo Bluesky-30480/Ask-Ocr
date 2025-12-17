@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { tesseractOcr } from '../../../services/ocr/tesseract-ocr.service';
 import './settings.css';
 
 interface LanguagePack {
@@ -18,7 +19,7 @@ export const OcrSettings: React.FC = () => {
   const [isInstalling, setIsInstalling] = useState(false);
   const [installProgress, setInstallProgress] = useState<Record<string, number>>({});
 
-  const availableLanguages: LanguagePack[] = [
+  const DEFAULT_LANGUAGES: LanguagePack[] = [
     { code: 'eng', name: 'English', size: '10.6 MB', installed: true },
     { code: 'chi_sim', name: 'Chinese (Simplified)', size: '16.8 MB', installed: false },
     { code: 'chi_tra', name: 'Chinese (Traditional)', size: '18.2 MB', installed: false },
@@ -36,6 +37,8 @@ export const OcrSettings: React.FC = () => {
     { code: 'vie', name: 'Vietnamese', size: '12.8 MB', installed: false },
   ];
 
+  const [availableLanguages, setAvailableLanguages] = useState<LanguagePack[]>(DEFAULT_LANGUAGES);
+
   useEffect(() => {
     loadSettings();
   }, []);
@@ -44,6 +47,15 @@ export const OcrSettings: React.FC = () => {
     const saved = localStorage.getItem('ocr_languages');
     if (saved) {
       setSelectedLanguages(JSON.parse(saved));
+    }
+
+    const savedInstalled = localStorage.getItem('ocr_installed_languages');
+    if (savedInstalled) {
+      const installedCodes = JSON.parse(savedInstalled) as string[];
+      setAvailableLanguages(prev => prev.map(lang => ({
+        ...lang,
+        installed: lang.code === 'eng' || installedCodes.includes(lang.code)
+      })));
     }
   };
 
@@ -65,14 +77,40 @@ export const OcrSettings: React.FC = () => {
     setInstallProgress(prev => ({ ...prev, [code]: 0 }));
 
     try {
-      // Simulate download progress
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setInstallProgress(prev => ({ ...prev, [code]: i }));
-      }
+      // Initialize Tesseract with the language to trigger download/caching
+      // Tesseract.js handles the downloading of .traineddata files
+      setInstallProgress(prev => ({ ...prev, [code]: 10 }));
+      
+      // We can't easily get granular progress from tesseract.js createWorker
+      // so we'll simulate progress while it initializes
+      const progressInterval = setInterval(() => {
+        setInstallProgress(prev => {
+          const current = prev[code] || 10;
+          if (current >= 90) return prev;
+          return { ...prev, [code]: current + 5 };
+        });
+      }, 500);
 
-      // Mark as installed
-      // In a real implementation, this would download from Tesseract CDN
+      await tesseractOcr.initialize(code);
+      
+      clearInterval(progressInterval);
+      setInstallProgress(prev => ({ ...prev, [code]: 100 }));
+
+      // Mark as installed in our local state
+      const updatedLangs = availableLanguages.map(l => 
+        l.code === code ? { ...l, installed: true } : l
+      );
+      setAvailableLanguages(updatedLangs);
+      
+      // Persist installed status
+      const installedCodes = updatedLangs.filter(l => l.installed).map(l => l.code);
+      localStorage.setItem('ocr_installed_languages', JSON.stringify(installedCodes));
+      
+      // Auto-select the newly installed language
+      if (!selectedLanguages.includes(code)) {
+        handleToggleLanguage(code);
+      }
+      
       alert(`Language pack "${code}" installed successfully!`);
     } catch (error) {
       console.error('Failed to install language:', error);

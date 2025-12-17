@@ -59,10 +59,11 @@ export class TesseractOcrService {
       }
 
       // Create new worker with language - NO LOGGER for performance
-      // Use local worker files if available (for offline support)
+      // Use default CDN if local files are not available
+      // Note: To support offline mode, these files must be present in public/
       this.worker = await createWorker(language, 1, {
-        workerPath: '/tessdata/worker.min.js',
-        corePath: '/tesseract-core.wasm.js',
+        // workerPath: '/tessdata/worker.min.js',
+        // corePath: '/tesseract-core.wasm.js',
         logger: () => {}, // Disable logging for performance
       });
 

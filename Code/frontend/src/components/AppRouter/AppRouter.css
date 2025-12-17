@@ -6,7 +6,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-primary, #f5f5f7);
+  background: var(--color-background-primary);
 }
 
 /* Breadcrumbs */
@@ -15,8 +15,8 @@
   align-items: center;
   gap: 12px;
   padding: 16px 24px;
-  background: white;
-  border-bottom: 1px solid var(--border-color, #d2d2d7);
+  background: var(--color-surface-primary);
+  border-bottom: 1px solid var(--color-border-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
@@ -26,25 +26,25 @@
   border: none;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-secondary, #6e6e73);
+  color: var(--color-text-secondary);
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .breadcrumb-item:hover:not(.active) {
-  background: #f5f5f7;
-  color: var(--accent-bg, #007aff);
+  background: var(--color-surface-secondary);
+  color: var(--color-primary);
 }
 
 .breadcrumb-item.active {
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
   cursor: default;
 }
 
 .breadcrumb-separator {
   font-size: 14px;
-  color: var(--text-secondary, #6e6e73);
+  color: var(--color-text-secondary);
   opacity: 0.5;
 }
 

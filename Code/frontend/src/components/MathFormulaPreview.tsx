@@ -98,9 +98,6 @@ const MathFormulaPreview: React.FC<MathFormulaPreviewProps> = ({ ocrText }) => {
                 <div className="formula-header">
                   <span className="formula-index">#{index + 1}</span>
                   <span className="formula-type">{formula.type}</span>
-                  <span className="formula-confidence">
-                    {(formula.confidence * 100).toFixed(0)}% confident
-                  </span>
                 </div>
                 
                 <div className="formula-content">

@@ -135,6 +135,87 @@ export const Homepage: React.FC<HomepageProps> = ({
     }
   };
 
+  const [selectedModel, setSelectedModel] = useState('local');
+  const [availableModels, setAvailableModels] = useState<string[]>(['local']);
+
+  useEffect(() => {
+    // Load available models
+    const loadModels = async () => {
+      // This is a placeholder. In a real app, we'd fetch this from universalAI
+      // For now, we'll check which keys are present in localStorage
+      const models = ['local'];
+      if (localStorage.getItem('openai_api_key')) models.push('openai');
+      if (localStorage.getItem('gemini_api_key')) models.push('gemini');
+      if (localStorage.getItem('claude_api_key')) models.push('claude');
+      if (localStorage.getItem('deepseek_api_key')) models.push('deepseek');
+      if (localStorage.getItem('grok_api_key')) models.push('grok');
+      if (localStorage.getItem('perplexity_api_key')) models.push('perplexity');
+      
+      setAvailableModels(models);
+      
+      // Load saved selection
+      const saved = localStorage.getItem('default_ai_provider');
+      if (saved && models.includes(saved)) {
+        setSelectedModel(saved);
+      }
+    };
+    
+    loadModels();
+  }, []);
+
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const model = e.target.value;
+    setSelectedModel(model);
+    localStorage.setItem('default_ai_provider', model);
+  };
+
+  const getModelCapabilities = (model: string) => {
+    const caps = {
+      search: false,
+      think: false,
+      upload: false
+    };
+    
+    switch (model) {
+      case 'openai':
+        caps.search = true;
+        caps.think = true; // o1 models
+        caps.upload = true;
+        break;
+      case 'gemini':
+        caps.search = true;
+        caps.upload = true;
+        break;
+      case 'claude':
+        caps.upload = true;
+        break;
+      case 'deepseek':
+        caps.think = true;
+        break;
+      case 'perplexity':
+        caps.search = true;
+        break;
+      case 'grok':
+        caps.search = true;
+        break;
+      case 'local':
+        // Local might support these depending on the model loaded
+        break;
+    }
+    return caps;
+  };
+
+  const capabilities = getModelCapabilities(selectedModel);
+
+  const handleCapabilityAction = (action: 'search' | 'think' | 'upload') => {
+    console.log(`Triggering ${action} for model ${selectedModel}`);
+    // TODO: Implement actual actions
+    // For now, we can open quick chat with a specific context or mode
+    if (onOpenQuickChat) {
+      onOpenQuickChat();
+    }
+  };
+
   const filterItems = (items: any[], query: string) => {
     if (!query) return items;
     return items.filter(item => 
@@ -165,7 +246,36 @@ export const Homepage: React.FC<HomepageProps> = ({
           <h1 className="homepage-title">Ask OCR</h1>
           <p className="homepage-subtitle">Your intelligent OCR assistant</p>
         </div>
-        <div className="homepage-header-right">
+        
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Model Selector */}
+          <div className="model-selector-container">
+            <select 
+              className="model-selector"
+              value={selectedModel}
+              onChange={handleModelChange}
+              title="Select AI Model"
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px',
+                border: '1px solid var(--color-border-primary)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text-primary)',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              {availableModels.map(model => (
+                <option key={model} value={model}>
+                  {model === 'local' ? 'Local (Ollama)' : 
+                   model.charAt(0).toUpperCase() + model.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button className="header-button" onClick={handleOpenSettings}>
             <span className="button-icon">⚙️</span>
             Settings
@@ -190,6 +300,36 @@ export const Homepage: React.FC<HomepageProps> = ({
             <div className="quick-action-description">Chat with AI models</div>
           </div>
         </button>
+
+        {capabilities.search && (
+          <button className="quick-action-card" onClick={() => handleCapabilityAction('search')}>
+            <div className="quick-action-icon">🌐</div>
+            <div className="quick-action-content">
+              <div className="quick-action-title">Web Search</div>
+              <div className="quick-action-description">Search the internet</div>
+            </div>
+          </button>
+        )}
+
+        {capabilities.think && (
+          <button className="quick-action-card" onClick={() => handleCapabilityAction('think')}>
+            <div className="quick-action-icon">🧠</div>
+            <div className="quick-action-content">
+              <div className="quick-action-title">Deep Think</div>
+              <div className="quick-action-description">Reasoning mode</div>
+            </div>
+          </button>
+        )}
+
+        {capabilities.upload && (
+          <button className="quick-action-card" onClick={() => handleCapabilityAction('upload')}>
+            <div className="quick-action-icon">📁</div>
+            <div className="quick-action-content">
+              <div className="quick-action-title">Upload File</div>
+              <div className="quick-action-description">Analyze documents</div>
+            </div>
+          </button>
+        )}
 
         <div className="quick-action-card stats">
           <div className="quick-action-icon">📊</div>

@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { universalAI } from '../../services/ai/universal-ai.service';
 import { ollamaManager } from '../../services/ai/ollama-manager.service';
 import { writeTextFile, readTextFile, createDir, exists, BaseDirectory } from '@tauri-apps/api/fs';
+import type { AIAttachment } from '@shared/types/ai.types';
 import './QuickChat.css';
 
 interface Message {
@@ -36,7 +37,9 @@ export const QuickChat: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>('local');
+  const [attachments, setAttachments] = useState<AIAttachment[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize
   useEffect(() => {
@@ -159,25 +162,83 @@ export const QuickChat: React.FC = () => {
     }
   };
 
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   const deleteSession = (sessionId: string) => {
-    if (confirm('Delete this chat session?')) {
-      const updatedSessions = sessions.filter(s => s.id !== sessionId);
-      saveSessions(updatedSessions);
+    setDeleteConfirmId(sessionId);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteConfirmId) return;
+    
+    const updatedSessions = sessions.filter(s => s.id !== deleteConfirmId);
+    saveSessions(updatedSessions);
+    
+    if (currentSessionId === deleteConfirmId) {
+      if (updatedSessions.length > 0) {
+        setCurrentSessionId(updatedSessions[0].id);
+        setMessages(updatedSessions[0].messages);
+      } else {
+        setCurrentSessionId(null);
+        setMessages([]);
+      }
+    }
+    
+    setDeleteConfirmId(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmId(null);
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newAttachments: AIAttachment[] = [];
       
-      if (currentSessionId === sessionId) {
-        if (updatedSessions.length > 0) {
-          setCurrentSessionId(updatedSessions[0].id);
-          setMessages(updatedSessions[0].messages);
-        } else {
-          setCurrentSessionId(null);
-          setMessages([]);
+      for (let i = 0; i < e.target.files.length; i++) {
+        const file = e.target.files[i];
+        const reader = new FileReader();
+
+        try {
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+
+          // Extract base64 data (remove data:image/png;base64, prefix)
+          const base64Data = dataUrl.split(',')[1];
+          
+          let type: 'image' | 'document' | 'audio' | 'video' = 'document';
+          if (file.type.startsWith('image/')) type = 'image';
+          else if (file.type.startsWith('audio/')) type = 'audio';
+          else if (file.type.startsWith('video/')) type = 'video';
+
+          newAttachments.push({
+            type,
+            data: base64Data,
+            mimeType: file.type,
+            filename: file.name
+          });
+        } catch (error) {
+          console.error('Error reading file:', error);
         }
       }
+
+      setAttachments([...attachments, ...newAttachments]);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
+  const removeAttachment = (index: number) => {
+    const newAttachments = [...attachments];
+    newAttachments.splice(index, 1);
+    setAttachments(newAttachments);
+  };
+
   const handleSendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+    if ((!inputText.trim() && attachments.length === 0) || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -189,20 +250,22 @@ export const QuickChat: React.FC = () => {
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInputText('');
+    const currentAttachments = [...attachments];
+    setAttachments([]);
     setIsLoading(true);
 
     try {
       // Pass the selected model to the chat function
       // If selectedModel is one of the known providers, use it as provider, otherwise treat as model for 'local' provider
-      let provider: 'local' | 'openai' | 'perplexity' = 'local';
+      let provider: 'local' | 'openai' | 'perplexity' | 'gemini' | 'claude' | 'deepseek' | 'grok' = 'local';
       let modelName = selectedModel;
 
-      if (selectedModel === 'openai' || selectedModel === 'perplexity') {
-        provider = selectedModel;
+      if (['openai', 'perplexity', 'gemini', 'claude', 'deepseek', 'grok'].includes(selectedModel)) {
+        provider = selectedModel as any;
         modelName = ''; // Let provider choose default or handle it
       }
 
-      const response = await universalAI.chat(userMessage.content, provider, modelName);
+      const response = await universalAI.chat(userMessage.content, provider, modelName, currentAttachments);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -257,6 +320,24 @@ export const QuickChat: React.FC = () => {
 
   return (
     <div className="quick-chat-container">
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="delete-confirmation-overlay" onClick={cancelDelete}>
+          <div className="delete-confirmation-dialog" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Chat?</h3>
+            <p>Are you sure you want to delete this chat session? This action cannot be undone.</p>
+            <div className="delete-confirmation-actions">
+              <button className="btn-cancel" onClick={cancelDelete}>
+                Cancel
+              </button>
+              <button className="btn-delete" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div className="qc-sidebar">
         <div className="qc-sidebar-header">
@@ -334,7 +415,40 @@ export const QuickChat: React.FC = () => {
         </div>
 
         <div className="qc-input-container">
+          {attachments.length > 0 && (
+            <div className="qc-attachments-preview">
+              {attachments.map((att, index) => (
+                <div key={index} className="qc-attachment-item">
+                  <span className="qc-attachment-icon">
+                    {att.type === 'image' ? '🖼️' : '📄'}
+                  </span>
+                  <span className="qc-attachment-name">{att.filename || 'File'}</span>
+                  <button 
+                    className="qc-attachment-remove"
+                    onClick={() => removeAttachment(index)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="qc-input-wrapper">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+              multiple
+            />
+            <button
+              className="qc-attach-btn"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              title="Attach files"
+            >
+              📎
+            </button>
             <textarea
               className="qc-input"
               placeholder="Message Ask OCR..."
@@ -348,7 +462,7 @@ export const QuickChat: React.FC = () => {
             <button
               className="qc-send-btn"
               onClick={handleSendMessage}
-              disabled={!inputText.trim() || isLoading}
+              disabled={(!inputText.trim() && attachments.length === 0) || isLoading}
             >
               ➤
             </button>

@@ -6,16 +6,16 @@
 .settings-page {
   display: flex;
   height: 100vh;
-  background: var(--bg-primary, #f5f5f7);
+  background: var(--color-background-secondary);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Helvetica Neue', sans-serif;
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
 }
 
 /* Sidebar */
 .settings-sidebar {
   width: 240px;
-  background: var(--sidebar-bg, #ffffff);
-  border-right: 1px solid var(--border-color, #d2d2d7);
+  background: var(--color-background);
+  border-right: 1px solid var(--color-border-primary);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -23,7 +23,7 @@
 
 .settings-sidebar-header {
   padding: 24px 20px 16px 20px;
-  border-bottom: 1px solid var(--border-color, #d2d2d7);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .settings-sidebar-header h1 {
@@ -31,7 +31,7 @@
   font-size: 28px;
   font-weight: 600;
   letter-spacing: -0.5px;
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
 }
 
 .settings-nav {
@@ -54,18 +54,18 @@
   text-align: left;
   width: 100%;
   font-size: 14px;
-  color: var(--text-secondary, #6e6e73);
+  color: var(--color-text-secondary);
   position: relative;
 }
 
 .settings-nav-item:hover {
-  background: var(--hover-bg, #f5f5f7);
-  color: var(--text-primary, #1d1d1f);
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
 }
 
 .settings-nav-item.active {
-  background: var(--accent-bg, #007aff);
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
 }
 
 .settings-nav-item.active::before {
@@ -76,7 +76,7 @@
   transform: translateY(-50%);
   width: 3px;
   height: 20px;
-  background: var(--accent-color, #007aff);
+  background: var(--color-primary);
   border-radius: 2px;
 }
 
@@ -100,6 +100,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  width: 100%; /* Ensure it takes full width */
 }
 
 .settings-content::-webkit-scrollbar {
@@ -113,7 +114,7 @@
 .settings-content::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
   border-radius: 6px;
-  border: 3px solid var(--bg-primary, #f5f5f7);
+  border: 3px solid var(--color-background-secondary);
 }
 
 .settings-content::-webkit-scrollbar-thumb:hover {
@@ -122,9 +123,17 @@
 
 /* Section Container */
 .settings-section {
-  max-width: 800px;
+  width: 100%;
+  max-width: 1000px; /* Increased from 800px */
   margin: 0 auto;
   padding: 32px 40px;
+  box-sizing: border-box; /* Ensure padding doesn't add to width */
+}
+
+@media (max-width: 768px) {
+  .settings-section {
+    padding: 20px;
+  }
 }
 
 .settings-section-header {
@@ -136,35 +145,35 @@
   font-weight: 600;
   letter-spacing: -0.5px;
   margin: 0 0 8px 0;
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
 }
 
 .settings-section-description {
   font-size: 15px;
-  color: var(--text-secondary, #6e6e73);
+  color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.5;
 }
 
 /* Groups */
 .settings-group {
-  background: var(--card-bg, #ffffff);
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  border: 1px solid var(--border-color, #d2d2d7);
+  border: 1px solid var(--color-border-primary);
 }
 
 .settings-group-title {
   font-size: 17px;
   font-weight: 600;
   margin: 0 0 16px 0;
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
 }
 
 .settings-group-description {
   font-size: 13px;
-  color: var(--text-secondary, #6e6e73);
+  color: var(--color-text-secondary);
   margin: -8px 0 16px 0;
   line-height: 1.4;
 }
@@ -175,7 +184,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 0;
-  border-bottom: 1px solid var(--divider-color, #f5f5f7);
+  border-bottom: 1px solid var(--color-border-secondary);
   gap: 20px;
 }
 
@@ -196,12 +205,12 @@
   font-size: 15px;
   font-weight: 500;
   margin: 0 0 4px 0;
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
 }
 
 .settings-item-description {
   font-size: 13px;
-  color: var(--text-secondary, #6e6e73);
+  color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.4;
 }
@@ -215,7 +224,7 @@
   position: relative;
   width: 51px;
   height: 31px;
-  background: var(--toggle-bg, #e5e5ea);
+  background: var(--color-border-secondary);
   border-radius: 31px;
   cursor: pointer;
   transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -230,14 +239,14 @@
   left: 2px;
   width: 27px;
   height: 27px;
-  background: #ffffff;
+  background: var(--color-surface);
   border-radius: 50%;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
 }
 
 .toggle-switch.active {
-  background: var(--accent-color, #34c759);
+  background: var(--color-success);
 }
 
 .toggle-switch.active::after {
@@ -245,18 +254,18 @@
 }
 
 .toggle-switch:hover:not(.active) {
-  background: #d1d1d6;
+  background: var(--color-border-primary);
 }
 
 /* Select Dropdown - Apple Style */
 .select-control {
   min-width: 200px;
   padding: 8px 32px 8px 12px;
-  background: var(--input-bg, #ffffff);
-  border: 1px solid var(--border-color, #d2d2d7);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-primary);
   border-radius: 6px;
   font-size: 14px;
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%236e6e73' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -266,47 +275,47 @@
 }
 
 .select-control:hover {
-  border-color: var(--accent-color, #007aff);
+  border-color: var(--color-primary);
 }
 
 .select-control:focus {
   outline: none;
-  border-color: var(--accent-color, #007aff);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 /* Input Field - Apple Style */
 .input-control {
   width: 100%;
   padding: 10px 12px;
-  background: var(--input-bg, #ffffff);
-  border: 1px solid var(--border-color, #d2d2d7);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-primary);
   border-radius: 6px;
   font-size: 14px;
-  color: var(--text-primary, #1d1d1f);
+  color: var(--color-text-primary);
   transition: all 0.15s ease;
   font-family: inherit;
 }
 
 .input-control:hover {
-  border-color: var(--accent-color, #007aff);
+  border-color: var(--color-primary);
 }
 
 .input-control:focus {
   outline: none;
-  border-color: var(--accent-color, #007aff);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .input-control::placeholder {
-  color: var(--text-tertiary, #98989d);
+  color: var(--color-text-tertiary);
 }
 
 /* Button - Apple Style */
 .button-control {
   padding: 8px 16px;
-  background: var(--accent-color, #007aff);
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
   border: none;
   border-radius: 6px;
   font-size: 14px;
@@ -317,7 +326,7 @@
 }
 
 .button-control:hover {
-  opacity: 0.8;
+  background: var(--color-primary-hover);
 }
 
 .button-control:active {
@@ -325,12 +334,12 @@
 }
 
 .button-control.secondary {
-  background: var(--secondary-bg, #f5f5f7);
-  color: var(--text-primary, #1d1d1f);
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
 }
 
 .button-control.destructive {
-  background: #ff3b30;
+  background: var(--color-error);
 }
 
 .button-control:disabled {

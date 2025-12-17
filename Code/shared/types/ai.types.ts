@@ -4,7 +4,7 @@
  */
 
 // AI Provider types
-export type AIProvider = 'openai' | 'perplexity' | 'local' | 'custom';
+export type AIProvider = 'openai' | 'perplexity' | 'local' | 'custom' | 'gemini' | 'claude' | 'deepseek' | 'grok';
 
 // AI Model configuration
 export interface AIModelConfig {
@@ -17,6 +17,14 @@ export interface AIModelConfig {
   topP?: number;
 }
 
+// AI Attachment (for multimodal models)
+export interface AIAttachment {
+  type: 'image' | 'document' | 'audio' | 'video';
+  data: string; // base64 or URL
+  mimeType: string;
+  filename?: string;
+}
+
 // AI Request
 export interface AIRequest {
   prompt: string;
@@ -26,6 +34,12 @@ export interface AIRequest {
   streaming?: boolean;
   maxTokens?: number;
   temperature?: number;
+  
+  // Advanced capabilities
+  enableDeepThinking?: boolean;
+  thinkingBudget?: number;
+  enableWebSearch?: boolean;
+  attachments?: AIAttachment[];
 }
 
 // AI Response
@@ -38,7 +52,9 @@ export interface AIResponse {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
+    thinkingTokens?: number; // For deep thinking models
   };
+  thinkingProcess?: string; // Reasoning chain for deep thinking models
   sources?: AISource[];
   timestamp: number;
   error?: string;

@@ -126,7 +126,6 @@ Guidelines:
       formattingInstructions: `Answer format:
 **Answer:** [Direct answer to the question]
 **Evidence:** [Quoted relevant text from the OCR]
-**Confidence:** [High/Medium/Low based on text clarity]
 **Note:** [Any clarifications or limitations]`,
       userPromptTemplate: `{{ocrPrePrompt}}
 
@@ -340,9 +339,7 @@ You adapt your approach based on:
 - If question: Answer with evidence from text
 - If extraction: Return structured data
 - If translation: Provide accurate translation
-- If analysis: Give detailed insights
-
-Always indicate confidence level and any OCR-related uncertainties.`,
+- If analysis: Give detailed insights`,
       userPromptTemplate: `{{ocrPrePrompt}}
 
 ---TEXT---

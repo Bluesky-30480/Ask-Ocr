@@ -90,7 +90,7 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [ ] **9.4** Add GPU/CPU configuration options
 - [ ] **9.5** Implement automated installation scripts
 - [ ] **9.6** Create model monitoring (memory/CPU usage display)
-- [ ] **9.7** Implement model list/switch interface in app
+- [x] **9.7** Implement model list/switch interface in app ✅ Session 10: Added model selector dropdown to Homepage header
 - [ ] **9.8** Add compatibility warnings and tips
 - [ ] **9.9** Implement rollback mechanism for failed installations
 - [ ] **9.10** Create user alert messages for installation process
@@ -138,7 +138,7 @@ Based on the comprehensive project requirements, tasks are organized into four p
 - [x] **12.2** Implement keyboard shortcut management interface ✅ Session 9: KeyboardSettings with live recording, conflict detection
 - [x] **12.3** Add model management (local/remote) section ✅ Session 9: AISettings with provider config, API keys, Ollama install
 - [x] **12.4** Implement language selection dropdown ✅ Session 9: GeneralSettings with 7 languages
-- [x] **12.5** Add multi-language OCR settings ✅ Session 9: Part of GeneralSettings
+- [x] **12.5** Add multi-language OCR settings ✅ Session 9 & 10: Fixed persistence of installed languages
 - [x] **12.6** Create privacy & log export section ✅ Session 9: PrivacySettings with blacklist, history management
 - [x] **12.7** Implement update check and rollback options ✅ Session 9: AdvancedSettings with export/import/reset
 
@@ -151,7 +151,7 @@ Based on the comprehensive project requirements, tasks are organized into four p
   - Profile management (create, save, apply popup layout profiles)
 
 ### 13. Homepage & Navigation
-- [x] **13.1** Create Homepage component (separate from Settings) ✅ Session 9
+- [x] **13.1** Create Homepage component (separate from Settings) ✅ Session 9 & 10: Added model selector, dynamic capability buttons, and fixed scaling
   - History panel (OCR history, chat history, app-specific asks)
   - Quick access buttons (New OCR, Quick Chat, Settings)
   - Recent captures gallery with thumbnails

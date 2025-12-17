@@ -6,9 +6,17 @@ import React, { useState, useEffect } from 'react';
 import { universalAI } from '../../../services/ai/universal-ai.service';
 import { ollamaManager } from '../../../services/ai/ollama-manager.service';
 
+type AIProviderType = 'local' | 'openai' | 'gemini' | 'claude' | 'deepseek' | 'grok' | 'perplexity';
+
 export const AISettings: React.FC = () => {
   const [openaiKey, setOpenaiKey] = useState('');
-  const [defaultProvider, setDefaultProvider] = useState<'local' | 'openai'>('local');
+  const [geminiKey, setGeminiKey] = useState('');
+  const [claudeKey, setClaudeKey] = useState('');
+  const [deepseekKey, setDeepseekKey] = useState('');
+  const [grokKey, setGrokKey] = useState('');
+  const [perplexityKey, setPerplexityKey] = useState('');
+  
+  const [defaultProvider, setDefaultProvider] = useState<AIProviderType>('local');
   const [providerStatus, setProviderStatus] = useState<Record<string, boolean>>({});
   const [ollamaStatus, setOllamaStatus] = useState<{ isInstalled: boolean; isRunning: boolean }>({
     isInstalled: false,
@@ -22,10 +30,14 @@ export const AISettings: React.FC = () => {
   }, []);
 
   const loadSettings = () => {
-    const savedKey = localStorage.getItem('openai_api_key') || '';
-    const savedProvider = (localStorage.getItem('default_ai_provider') as 'local' | 'openai') || 'local';
+    setOpenaiKey(localStorage.getItem('openai_api_key') || '');
+    setGeminiKey(localStorage.getItem('gemini_api_key') || '');
+    setClaudeKey(localStorage.getItem('claude_api_key') || '');
+    setDeepseekKey(localStorage.getItem('deepseek_api_key') || '');
+    setGrokKey(localStorage.getItem('grok_api_key') || '');
+    setPerplexityKey(localStorage.getItem('perplexity_api_key') || '');
     
-    setOpenaiKey(savedKey);
+    const savedProvider = (localStorage.getItem('default_ai_provider') as AIProviderType) || 'local';
     setDefaultProvider(savedProvider);
   };
 
@@ -46,19 +58,39 @@ export const AISettings: React.FC = () => {
     }
   };
 
-  const handleSaveOpenAI = () => {
-    if (openaiKey.trim()) {
-      localStorage.setItem('openai_api_key', openaiKey.trim());
-      universalAI.initialize({ openaiApiKey: openaiKey.trim() });
-      alert('OpenAI API key saved successfully');
-      checkStatus();
-    } else {
-      localStorage.removeItem('openai_api_key');
-      alert('OpenAI API key removed');
-    }
+  const handleSaveKeys = () => {
+    if (openaiKey.trim()) localStorage.setItem('openai_api_key', openaiKey.trim());
+    else localStorage.removeItem('openai_api_key');
+
+    if (geminiKey.trim()) localStorage.setItem('gemini_api_key', geminiKey.trim());
+    else localStorage.removeItem('gemini_api_key');
+
+    if (claudeKey.trim()) localStorage.setItem('claude_api_key', claudeKey.trim());
+    else localStorage.removeItem('claude_api_key');
+
+    if (deepseekKey.trim()) localStorage.setItem('deepseek_api_key', deepseekKey.trim());
+    else localStorage.removeItem('deepseek_api_key');
+
+    if (grokKey.trim()) localStorage.setItem('grok_api_key', grokKey.trim());
+    else localStorage.removeItem('grok_api_key');
+
+    if (perplexityKey.trim()) localStorage.setItem('perplexity_api_key', perplexityKey.trim());
+    else localStorage.removeItem('perplexity_api_key');
+
+    universalAI.initialize({
+      openaiApiKey: openaiKey.trim(),
+      geminiApiKey: geminiKey.trim(),
+      claudeApiKey: claudeKey.trim(),
+      deepseekApiKey: deepseekKey.trim(),
+      grokApiKey: grokKey.trim(),
+      perplexityApiKey: perplexityKey.trim(),
+    });
+
+    alert('API keys saved successfully');
+    checkStatus();
   };
 
-  const handleDefaultProviderChange = (value: 'local' | 'openai') => {
+  const handleDefaultProviderChange = (value: AIProviderType) => {
     setDefaultProvider(value);
     localStorage.setItem('default_ai_provider', value);
   };
@@ -89,6 +121,52 @@ export const AISettings: React.FC = () => {
     }
   };
 
+  const renderProviderInput = (
+    label: string,
+    value: string,
+    setValue: (val: string) => void,
+    placeholder: string,
+    link: string,
+    providerKey: string
+  ) => (
+    <div className="settings-group">
+      <h3 className="settings-group-title">{label} Configuration</h3>
+      <div className="settings-item">
+        <div className="settings-item-label">
+          <div className="settings-item-title">API Key</div>
+          <div className="settings-item-description">
+            Get your API key from{' '}
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--accent-color)' }}
+            >
+              {new URL(link).hostname}
+            </a>
+          </div>
+        </div>
+      </div>
+      <div className="settings-item">
+        <div className="settings-item-label">
+          <input
+            type="password"
+            className="input-control"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={placeholder}
+            style={{ fontFamily: 'monospace' }}
+          />
+        </div>
+        <div className="settings-item-control">
+          <div className="status-indicator">
+            {providerStatus[providerKey] ? '✅ Connected' : value ? '⚠️ Not Verified' : '⚪ Not Configured'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="settings-section">
       <div className="settings-section-header">
@@ -98,17 +176,69 @@ export const AISettings: React.FC = () => {
         </p>
       </div>
 
-      {/* Provider Status */}
+      {/* Provider Status & Global Controls */}
       <div className="settings-group">
-        <h3 className="settings-group-title">Provider Status</h3>
-        <p className="settings-group-description">
-          Current status of available AI providers
-        </p>
+        <h3 className="settings-group-title">Global Settings</h3>
+        
+        <div className="settings-item">
+          <div className="settings-item-label">
+            <div className="settings-item-title">Default Provider</div>
+            <div className="settings-item-description">
+              Choose which AI provider to use by default
+            </div>
+          </div>
+          <div className="settings-item-control">
+            <select
+              className="select-control"
+              value={defaultProvider}
+              onChange={(e) => handleDefaultProviderChange(e.target.value as AIProviderType)}
+            >
+              <option value="local">Local (Ollama) - Free</option>
+              <option value="openai">OpenAI</option>
+              <option value="gemini">Google Gemini</option>
+              <option value="claude">Anthropic Claude</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="grok">xAI Grok</option>
+              <option value="perplexity">Perplexity</option>
+            </select>
+          </div>
+        </div>
 
         <div className="settings-item">
           <div className="settings-item-label">
+            <div className="settings-item-title">Connection Status</div>
+            <div className="settings-item-description">
+              Test connections to all configured providers
+            </div>
+          </div>
+          <div className="settings-item-control">
+            <button
+              className="button-control secondary"
+              onClick={handleTestConnections}
+              disabled={isTesting}
+            >
+              {isTesting ? '⏳ Testing...' : '🔍 Test Connections'}
+            </button>
+          </div>
+        </div>
+        
+        <div className="settings-item">
+           <div className="settings-item-label"></div>
+           <div className="settings-item-control">
+             <button className="button-control" onClick={handleSaveKeys}>
+               💾 Save All Keys
+             </button>
+           </div>
+        </div>
+      </div>
+
+      {/* Local Provider */}
+      <div className="settings-group">
+        <h3 className="settings-group-title">Local AI (Ollama)</h3>
+        <div className="settings-item">
+          <div className="settings-item-label">
             <div className="settings-item-title">
-              {providerStatus.local ? '🟢' : '🔴'} Local (Ollama)
+              {providerStatus.local ? '🟢' : '🔴'} Status
             </div>
             <div className="settings-item-description">
               {ollamaStatus.isRunning
@@ -126,101 +256,62 @@ export const AISettings: React.FC = () => {
             </div>
           )}
         </div>
-
-        <div className="settings-item">
-          <div className="settings-item-label">
-            <div className="settings-item-title">
-              {providerStatus.openai ? '🟢' : '🔴'} OpenAI
-            </div>
-            <div className="settings-item-description">
-              {providerStatus.openai ? 'API key configured and valid' : 'No API key or invalid'}
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-item">
-          <div className="settings-item-label"></div>
-          <div className="settings-item-control">
-            <button
-              className="button-control secondary"
-              onClick={handleTestConnections}
-              disabled={isTesting}
-            >
-              {isTesting ? '⏳ Testing...' : '🔍 Test Connections'}
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* Default Provider */}
-      <div className="settings-group">
-        <h3 className="settings-group-title">Default Provider</h3>
-        <p className="settings-group-description">
-          Choose which AI provider to use by default
-        </p>
+      {/* Cloud Providers */}
+      {renderProviderInput(
+        'OpenAI',
+        openaiKey,
+        setOpenaiKey,
+        'sk-...',
+        'https://platform.openai.com/api-keys',
+        'openai'
+      )}
 
-        <div className="settings-item">
-          <div className="settings-item-label">
-            <div className="settings-item-title">Preferred Provider</div>
-            <div className="settings-item-description">
-              This will be used unless a specific provider is required
-            </div>
-          </div>
-          <div className="settings-item-control">
-            <select
-              className="select-control"
-              value={defaultProvider}
-              onChange={(e) => handleDefaultProviderChange(e.target.value as 'local' | 'openai')}
-            >
-              <option value="local">Local (Ollama) - Free</option>
-              <option value="openai">OpenAI - Requires API Key</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      {renderProviderInput(
+        'Google Gemini',
+        geminiKey,
+        setGeminiKey,
+        'AIza...',
+        'https://aistudio.google.com/app/apikey',
+        'gemini'
+      )}
 
-      {/* OpenAI Configuration */}
-      <div className="settings-group">
-        <h3 className="settings-group-title">OpenAI Configuration</h3>
-        <p className="settings-group-description">
-          Configure your OpenAI API key for cloud-based AI features
-        </p>
+      {renderProviderInput(
+        'Anthropic Claude',
+        claudeKey,
+        setClaudeKey,
+        'sk-ant-...',
+        'https://console.anthropic.com/settings/keys',
+        'claude'
+      )}
 
-        <div className="settings-item">
-          <div className="settings-item-label">
-            <div className="settings-item-title">API Key</div>
-            <div className="settings-item-description">
-              Get your API key from{' '}
-              <a
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: 'var(--accent-color)' }}
-              >
-                platform.openai.com
-              </a>
-            </div>
-          </div>
-        </div>
+      {renderProviderInput(
+        'DeepSeek',
+        deepseekKey,
+        setDeepseekKey,
+        'sk-...',
+        'https://platform.deepseek.com/api_keys',
+        'deepseek'
+      )}
 
-        <div className="settings-item">
-          <div className="settings-item-label">
-            <input
-              type="password"
-              className="input-control"
-              value={openaiKey}
-              onChange={(e) => setOpenaiKey(e.target.value)}
-              placeholder="sk-..."
-              style={{ fontFamily: 'monospace' }}
-            />
-          </div>
-          <div className="settings-item-control">
-            <button className="button-control" onClick={handleSaveOpenAI}>
-              💾 Save
-            </button>
-          </div>
-        </div>
-      </div>
+      {renderProviderInput(
+        'xAI Grok',
+        grokKey,
+        setGrokKey,
+        'xai-...',
+        'https://console.x.ai/',
+        'grok'
+      )}
+
+      {renderProviderInput(
+        'Perplexity',
+        perplexityKey,
+        setPerplexityKey,
+        'pplx-...',
+        'https://www.perplexity.ai/settings/api',
+        'perplexity'
+      )}
     </div>
   );
 };

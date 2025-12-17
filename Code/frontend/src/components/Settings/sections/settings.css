@@ -1,19 +1,21 @@
 /* Settings Section Shared Styles */
 
+/* .settings-section is handled by SettingsPage.css, but we keep a fallback here just in case */
 .settings-section {
   padding: 24px;
-  max-width: 900px;
+  max-width: 100%; /* Allow full width */
+  box-sizing: border-box;
 }
 
 .settings-section h2 {
   font-size: 28px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: var(--text-primary, #000);
+  color: var(--color-text-primary);
 }
 
 .section-description {
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   margin-bottom: 32px;
   font-size: 14px;
 }
@@ -27,11 +29,11 @@
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: var(--text-primary, #000);
+  color: var(--color-text-primary);
 }
 
 .info-box {
-  background: var(--bg-secondary, #f5f5f7);
+  background: var(--color-background-secondary);
   border-radius: 8px;
   padding: 16px;
   margin-top: 16px;
@@ -40,7 +42,7 @@
 .info-box p {
   margin: 0;
   font-size: 13px;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
@@ -55,30 +57,31 @@
 .progress-bar-bg {
   flex: 1;
   height: 8px;
-  background-color: var(--bg-secondary, #f5f5f7);
+  background-color: var(--color-background-secondary);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background-color: var(--accent-color, #007aff);
+  background-color: var(--color-primary);
   transition: width 0.3s ease;
 }
 
 .progress-text {
   font-size: 12px;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   min-width: 35px;
   text-align: right;
 }
 
 /* Language List */
 .language-list {
-  background: var(--bg-primary, #fff);
+  background: var(--color-surface);
   border-radius: 12px;
-  border: 1px solid var(--border-color, #e0e0e0);
+  border: 1px solid var(--color-border-primary);
   overflow: hidden;
+  width: 100%; /* Ensure it takes full width */
 }
 
 .language-item {
@@ -86,7 +89,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .language-item:last-child {
@@ -205,8 +208,8 @@
 
 /* Buttons */
 .btn-primary {
-  background: #007aff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -217,17 +220,17 @@
 }
 
 .btn-primary:hover {
-  background: #0051d5;
+  background: var(--color-primary-hover);
 }
 
 .btn-primary:disabled {
-  background: #ccc;
+  background: var(--color-border-primary);
   cursor: not-allowed;
 }
 
 .btn-secondary {
-  background: var(--bg-secondary, #f5f5f7);
-  color: var(--text-primary, #000);
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -238,7 +241,7 @@
 }
 
 .btn-secondary:hover {
-  background: #e0e0e0;
+  background: var(--color-border-secondary);
 }
 
 .btn-small {
@@ -251,7 +254,7 @@
 }
 
 .btn-small.btn-danger {
-  background: #ff3b30;
+  background: var(--color-error);
   color: white;
 }
 
@@ -260,7 +263,7 @@
 }
 
 .btn-small.btn-info {
-  background: #007aff;
+  background: var(--color-info);
   color: white;
 }
 
@@ -269,7 +272,7 @@
 }
 
 .btn-small.btn-primary {
-  background: #34c759;
+  background: var(--color-success);
   color: white;
 }
 
@@ -278,7 +281,7 @@
 }
 
 .btn-small:disabled {
-  background: #ccc;
+  background: var(--color-border-primary);
   cursor: not-allowed;
 }
 
