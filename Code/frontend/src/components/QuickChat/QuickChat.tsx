@@ -9,7 +9,6 @@ import remarkGfm from 'remark-gfm';
 import { universalAI } from '../../services/ai/universal-ai.service';
 import { ollamaManager } from '../../services/ai/ollama-manager.service';
 import { writeTextFile, readTextFile, createDir, exists, BaseDirectory } from '@tauri-apps/api/fs';
-import { ProgressBar } from '../ProgressBar/ProgressBar';
 import type { AIAttachment } from '@shared/types/ai.types';
 import './QuickChat.css';
 
@@ -902,3 +901,5 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
     </div>
   );
 };
+
+// End of QuickChat component
