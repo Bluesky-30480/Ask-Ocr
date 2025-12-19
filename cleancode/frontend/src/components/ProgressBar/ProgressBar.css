@@ -1,0 +1,384 @@
+/**
+ * Progress Bar Component Styles
+ * Animated progress indicators with multiple variants
+ */
+
+.progress-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+/* ===== SIZE VARIANTS ===== */
+
+.progress-bar-container.size-xs {
+  --progress-height: 4px;
+  --progress-border-radius: 2px;
+}
+
+.progress-bar-container.size-sm {
+  --progress-height: 6px;
+  --progress-border-radius: 3px;
+}
+
+.progress-bar-container.size-md {
+  --progress-height: 8px;
+  --progress-border-radius: 4px;
+}
+
+.progress-bar-container.size-lg {
+  --progress-height: 12px;
+  --progress-border-radius: 6px;
+}
+
+/* ===== PROGRESS LABEL ===== */
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-1);
+}
+
+.label-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.label-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+}
+
+/* ===== PROGRESS TRACK ===== */
+
+.progress-track {
+  position: relative;
+  width: 100%;
+  height: var(--progress-height);
+  background-color: var(--color-background-tertiary);
+  border-radius: var(--progress-border-radius);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== COLOR VARIANTS ===== */
+
+.progress-track.color-primary {
+  --progress-color: var(--color-primary);
+  --progress-color-light: var(--color-primary-subtle);
+}
+
+.progress-track.color-secondary {
+  --progress-color: var(--color-text-secondary);
+  --progress-color-light: var(--color-background-secondary);
+}
+
+.progress-track.color-success {
+  --progress-color: var(--color-success);
+  --progress-color-light: var(--color-success-subtle);
+}
+
+.progress-track.color-warning {
+  --progress-color: var(--color-warning);
+  --progress-color-light: var(--color-warning-subtle);
+}
+
+.progress-track.color-error {
+  --progress-color: var(--color-error);
+  --progress-color-light: var(--color-error-subtle);
+}
+
+.progress-track.color-info {
+  --progress-color: var(--color-info);
+  --progress-color-light: var(--color-info-subtle);
+}
+
+/* ===== PROGRESS FILL ===== */
+
+.progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: var(--progress-color);
+  border-radius: inherit;
+  transition: width var(--duration-normal) var(--ease-out);
+  overflow: hidden;
+}
+
+.progress-track.animated .progress-fill {
+  transition: width var(--duration-fast) var(--ease-out);
+}
+
+/* ===== GRADIENT VARIANT ===== */
+
+.progress-track.variant-gradient .progress-fill {
+  background: linear-gradient(
+    90deg,
+    var(--progress-color-light) 0%,
+    var(--progress-color) 50%,
+    var(--progress-color-light) 100%
+  );
+}
+
+/* ===== STRIPED VARIANT ===== */
+
+.progress-stripes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 16px 16px;
+}
+
+.animated-stripes {
+  animation: progress-stripes 1s linear infinite;
+}
+
+@keyframes progress-stripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 16px 0;
+  }
+}
+
+/* ===== PULSE VARIANT ===== */
+
+.progress-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: progress-pulse 2s ease-in-out infinite;
+}
+
+@keyframes progress-pulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ===== INDETERMINATE VARIANT ===== */
+
+.progress-track.indeterminate {
+  overflow: hidden;
+}
+
+.progress-track.indeterminate .progress-fill {
+  width: 100% !important;
+  transform: translateX(-100%);
+  animation: indeterminate-slide 2s ease-in-out infinite;
+}
+
+.indeterminate-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30%;
+  height: 100%;
+  background-color: var(--progress-color);
+  border-radius: inherit;
+  animation: indeterminate-bounce 2s ease-in-out infinite;
+}
+
+@keyframes indeterminate-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes indeterminate-bounce {
+  0%, 20% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  80%, 100% {
+    transform: translateX(300%);
+  }
+}
+
+/* ===== INLINE VALUE ===== */
+
+.progress-inline-value {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+  text-align: right;
+  margin-top: var(--spacing-1);
+}
+
+/* ===== ENHANCED ANIMATIONS ===== */
+
+.progress-track.animated {
+  position: relative;
+}
+
+.progress-track.animated::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: progress-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes progress-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 768px) {
+  .progress-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-1);
+  }
+  
+  .label-value {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill,
+  .animated-stripes,
+  .progress-pulse,
+  .progress-track.indeterminate .progress-fill,
+  .indeterminate-fill,
+  .progress-track.animated::after {
+    animation: none;
+    transition: none;
+  }
+  
+  .progress-track.indeterminate .progress-fill {
+    transform: none;
+    width: 100% !important;
+  }
+  
+  .indeterminate-fill {
+    display: none;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+
+@media (prefers-contrast: high) {
+  .progress-track {
+    border: 1px solid var(--color-border-primary);
+  }
+  
+  .progress-fill {
+    border: 1px solid var(--progress-color);
+  }
+}
+
+/* ===== DARK MODE ADJUSTMENTS ===== */
+
+@media (prefers-color-scheme: dark) {
+  .progress-track {
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+
+@media print {
+  .progress-track {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+  }
+  
+  .progress-fill {
+    background-color: #333 !important;
+  }
+  
+  .progress-stripes,
+  .progress-pulse,
+  .indeterminate-fill {
+    display: none;
+  }
+}
+
+/* ===== FOCUS STYLES ===== */
+
+.progress-bar-container:focus-within .progress-track {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===== HOVER EFFECTS ===== */
+
+.progress-track:hover {
+  transform: scale(1.02);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.progress-track:hover .progress-fill {
+  box-shadow: 0 0 8px rgba(var(--progress-color), 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-track:hover {
+    transform: none;
+  }
+  
+  .progress-track:hover .progress-fill {
+    box-shadow: none;
+  }
+}"

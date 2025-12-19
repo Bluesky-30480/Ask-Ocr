@@ -1,0 +1,448 @@
+/* Model Install Path Selector Styles */
+
+.model-install-path-selector {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.model-install-path-selector h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.model-install-path-selector h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Path Mode Selector */
+.path-mode-selector {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.path-mode-selector label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.path-mode-selector label:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.path-mode-selector label.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.path-mode-selector input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.path-mode-selector span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Path Display */
+.path-display {
+  margin-bottom: 24px;
+}
+
+.path-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.path-input-group input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  transition: border-color 0.2s;
+}
+
+.path-input-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.path-input-group input.valid {
+  border-color: #10b981;
+}
+
+.path-input-group input.invalid {
+  border-color: #ef4444;
+}
+
+.path-input-group input:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.browse-btn {
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.browse-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.browse-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Path Checking */
+.path-checking {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Path Info */
+.path-info {
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.path-info.valid {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.path-info.invalid {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.validation-status {
+  margin-bottom: 16px;
+}
+
+.status-success {
+  color: #059669;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.status-error {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Storage Info */
+.storage-info {
+  margin-top: 16px;
+}
+
+.storage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.space-indicator {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.space-indicator.ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.space-indicator.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.space-indicator.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Storage Bar */
+.storage-bar {
+  position: relative;
+  height: 24px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.storage-used {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  transition: width 0.3s;
+}
+
+.storage-required {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    #fbbf24,
+    #fbbf24 10px,
+    #f59e0b 10px,
+    #f59e0b 20px
+  );
+  opacity: 0.7;
+  transition: width 0.3s, left 0.3s;
+}
+
+.storage-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+/* Space Warnings */
+.space-warning {
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 12px 0;
+}
+
+.space-warning.warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.space-warning.critical {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+/* Permissions Info */
+.permissions-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.permission-item {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.permission-item .success {
+  color: #059669;
+  font-weight: 500;
+}
+
+.permission-item .warning {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.permission-item .error {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* Default Paths Info */
+.default-paths-info {
+  padding: 16px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.platform-paths {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.platform-path {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.platform-path strong {
+  font-size: 13px;
+  color: #374151;
+}
+
+.platform-path code {
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  color: #1f2937;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .model-install-path-selector {
+    background: #1f2937;
+  }
+
+  .model-install-path-selector h3,
+  .model-install-path-selector h4 {
+    color: #f3f4f6;
+  }
+
+  .path-mode-selector label {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .path-mode-selector label:hover {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+  }
+
+  .path-mode-selector label.active {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+  }
+
+  .path-mode-selector span {
+    color: #e5e7eb;
+  }
+
+  .path-input-group input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f3f4f6;
+  }
+
+  .path-input-group input:disabled {
+    background: #1f2937;
+    color: #9ca3af;
+  }
+
+  .path-checking {
+    background: #374151;
+    color: #9ca3af;
+  }
+
+  .path-info {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .path-info.valid {
+    background: #064e3b;
+    border-color: #10b981;
+  }
+
+  .path-info.invalid {
+    background: #7f1d1d;
+    border-color: #ef4444;
+  }
+
+  .storage-bar {
+    background: #4b5563;
+  }
+
+  .storage-labels {
+    color: #9ca3af;
+  }
+
+  .permissions-info {
+    border-top-color: #4b5563;
+  }
+
+  .default-paths-info {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .platform-path strong {
+    color: #e5e7eb;
+  }
+
+  .platform-path code {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #f3f4f6;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .path-mode-selector {
+    flex-direction: column;
+  }
+
+  .storage-labels {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

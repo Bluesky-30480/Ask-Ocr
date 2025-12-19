@@ -1,0 +1,407 @@
+/**
+ * Toolbar Component Styles
+ * Top toolbar with screenshot, search, and action buttons
+ */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 var(--spacing-6);
+  background: var(--glass-header-bg);
+  backdrop-filter: blur(var(--glass-header-blur));
+  -webkit-backdrop-filter: blur(var(--glass-header-blur));
+  border-bottom: 1px solid var(--glass-header-border);
+  position: relative;
+  z-index: var(--z-sticky);
+}
+
+/* ===== TOOLBAR SECTIONS ===== */
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.toolbar-left {
+  flex: 0 0 auto;
+}
+
+.toolbar-center {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 var(--spacing-6);
+}
+
+.toolbar-right {
+  flex: 0 0 auto;
+}
+
+/* ===== TOOLBAR BUTTONS ===== */
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  height: 36px;
+  border-radius: var(--radius-button);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.toolbar-btn:hover {
+  background-color: var(--bg-button-hover);
+  color: var(--color-text-primary);
+}
+
+.toolbar-btn:active {
+  background-color: var(--bg-button-active);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Button Variants */
+.toolbar-btn.primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-button);
+}
+
+.toolbar-btn.primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-button-hover);
+}
+
+.toolbar-btn.primary:active {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+  box-shadow: var(--shadow-button-active);
+}
+
+.toolbar-btn.secondary {
+  border-color: var(--color-border-primary);
+  background-color: var(--color-surface-primary);
+}
+
+.toolbar-btn.secondary:hover {
+  border-color: var(--color-border-secondary);
+  background-color: var(--bg-surface-hover);
+}
+
+.toolbar-btn.icon-only {
+  padding: var(--spacing-2);
+  width: 36px;
+  justify-content: center;
+}
+
+.toolbar-btn.processing {
+  pointer-events: none;
+}
+
+/* Button Elements */
+.btn-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== SEARCH FORM ===== */
+
+.search-form {
+  width: 100%;
+  position: relative;
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--spacing-10) 0 var(--spacing-10);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-input-search);
+  background-color: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-fast);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.search-icon {
+  position: absolute;
+  left: var(--spacing-3);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-clear {
+  position: absolute;
+  right: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  z-index: 1;
+}
+
+.search-clear:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--color-text-secondary);
+}
+
+/* ===== SEARCH SUGGESTIONS ===== */
+
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + var(--spacing-1));
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-dropdown);
+  box-shadow: var(--shadow-dropdown);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+}
+
+.suggestions-header {
+  padding: var(--spacing-2) var(--spacing-3);
+  border-bottom: 1px solid var(--color-border-primary);
+  background-color: var(--color-background-tertiary);
+}
+
+.suggestions-header span {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.suggestions-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-1) 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.suggestion-item:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+.suggestion-icon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+/* ===== TOOLBAR DIVIDER ===== */
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--color-border-primary);
+  margin: 0 var(--spacing-2);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 1024px) {
+  .toolbar {
+    padding: 0 var(--spacing-4);
+  }
+  
+  .toolbar-center {
+    margin: 0 var(--spacing-4);
+    max-width: 400px;
+  }
+  
+  .toolbar-btn .btn-label {
+    display: none;
+  }
+  
+  .toolbar-btn {
+    padding: var(--spacing-2);
+    width: 36px;
+    justify-content: center;
+  }
+  
+  .toolbar-btn.primary {
+    width: auto;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+  
+  .toolbar-btn.primary .btn-label {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    height: 52px;
+    padding: 0 var(--spacing-3);
+  }
+  
+  .toolbar-center {
+    margin: 0 var(--spacing-3);
+  }
+  
+  .search-input {
+    height: 32px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .search-input::placeholder {
+    font-size: var(--font-size-xs);
+  }
+  
+  .toolbar-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .toolbar-btn.primary {
+    padding: var(--spacing-2);
+  }
+  
+  .toolbar-btn.primary .btn-label {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-section {
+    gap: var(--spacing-2);
+  }
+  
+  .toolbar-right .toolbar-btn:not(:last-child):not(.toolbar-divider + *) {
+    display: none;
+  }
+  
+  .toolbar-divider {
+    display: none;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+.toolbar-btn:focus-visible,
+.search-input:focus-visible,
+.search-clear:focus-visible,
+.suggestion-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===== DARK MODE ADJUSTMENTS ===== */
+
+@media (prefers-color-scheme: dark) {
+  .suggestions-header {
+    background-color: var(--color-surface-tertiary);
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-btn,
+  .search-input,
+  .search-clear,
+  .suggestion-item {
+    transition: none;
+  }
+  
+  .spinner {
+    animation: none;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+
+@media (prefers-contrast: high) {
+  .toolbar {
+    border-bottom: 2px solid var(--color-border-primary);
+  }
+  
+  .search-input {
+    border: 2px solid var(--color-border-primary);
+  }
+  
+  .search-suggestions {
+    border: 2px solid var(--color-border-primary);
+  }
+}

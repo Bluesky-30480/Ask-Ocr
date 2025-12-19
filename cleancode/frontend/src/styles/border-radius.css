@@ -1,0 +1,289 @@
+/**
+ * Border Radius Configuration
+ * Specific radius values for different component types
+ */
+
+:root {
+  /* ===== COMPONENT-SPECIFIC BORDER RADIUS ===== */
+  
+  /* Windows & Containers */
+  --radius-window-main: 12px;           /* Main application window */
+  --radius-window-floating: 16px;       /* Floating windows (OCR modal, etc.) */
+  --radius-window-popup: 8px;           /* Small popups and tooltips */
+  
+  /* Dialogs & Modals */
+  --radius-dialog-large: 20px;          /* Large dialogs (settings, etc.) */
+  --radius-dialog-medium: 16px;         /* Medium dialogs */
+  --radius-dialog-small: 12px;          /* Small dialogs and alerts */
+  --radius-modal-overlay: 24px;         /* Full-screen modal overlays */
+  
+  /* Buttons */
+  --radius-button-primary: 8px;         /* Primary action buttons */
+  --radius-button-secondary: 6px;       /* Secondary buttons */
+  --radius-button-small: 6px;           /* Small buttons */
+  --radius-button-icon: 8px;            /* Icon-only buttons */
+  --radius-button-pill: 9999px;         /* Pill-shaped buttons */
+  --radius-button-fab: 50%;             /* Floating action buttons */
+  
+  /* Form Controls */
+  --radius-input-text: 8px;             /* Text inputs */
+  --radius-input-search: 12px;          /* Search inputs */
+  --radius-input-textarea: 8px;         /* Text areas */
+  --radius-select: 8px;                 /* Select dropdowns */
+  --radius-checkbox: 4px;               /* Checkboxes */
+  --radius-radio: 50%;                  /* Radio buttons */
+  --radius-switch: 16px;                /* Toggle switches */
+  --radius-slider-track: 4px;           /* Slider tracks */
+  --radius-slider-thumb: 50%;           /* Slider thumbs */
+  
+  /* Cards & Panels */
+  --radius-card-small: 8px;             /* Small cards */
+  --radius-card-medium: 12px;           /* Medium cards */
+  --radius-card-large: 16px;            /* Large cards */
+  --radius-panel: 12px;                 /* Side panels */
+  --radius-section: 8px;                /* Content sections */
+  
+  /* Navigation */
+  --radius-tab: 6px;                    /* Tab buttons */
+  --radius-tab-content: 8px;            /* Tab content areas */
+  --radius-breadcrumb: 4px;             /* Breadcrumb items */
+  --radius-pagination: 6px;             /* Pagination buttons */
+  
+  /* Media & Content */
+  --radius-image-small: 6px;            /* Small images/thumbnails */
+  --radius-image-medium: 8px;           /* Medium images */
+  --radius-image-large: 12px;           /* Large images */
+  --radius-avatar-square: 8px;          /* Square avatars */
+  --radius-avatar-rounded: 50%;         /* Circular avatars */
+  --radius-badge: 12px;                 /* Badges and tags */
+  
+  /* Overlays & Notifications */
+  --radius-toast: 12px;                 /* Toast notifications */
+  --radius-tooltip: 6px;                /* Tooltips */
+  --radius-popover: 12px;               /* Popovers */
+  --radius-dropdown: 8px;               /* Dropdown menus */
+  --radius-context-menu: 8px;           /* Context menus */
+  
+  /* Progress & Loading */
+  --radius-progress-bar: 4px;           /* Progress bars */
+  --radius-loading-spinner: 50%;        /* Loading spinners */
+  --radius-skeleton: 4px;               /* Skeleton loaders */
+  
+  /* Specific to OCR App */
+  --radius-ocr-modal: 20px;             /* OCR results modal */
+  --radius-screenshot-overlay: 8px;     /* Screenshot selection overlay */
+  --radius-history-item: 8px;           /* History list items */
+  --radius-template-card: 12px;         /* Template cards */
+  --radius-settings-section: 12px;      /* Settings sections */
+}
+
+/* ===== RESPONSIVE BORDER RADIUS ===== */
+
+/* Reduce radius on smaller screens for better touch targets */
+@media (max-width: 768px) {
+  :root {
+    --radius-window-main: 8px;
+    --radius-window-floating: 12px;
+    --radius-dialog-large: 16px;
+    --radius-dialog-medium: 12px;
+    --radius-modal-overlay: 16px;
+    --radius-card-large: 12px;
+    --radius-card-medium: 8px;
+  }
+}
+
+/* ===== UTILITY CLASSES FOR BORDER RADIUS ===== */
+
+/* Window radius utilities */
+.radius-window-main {
+  border-radius: var(--radius-window-main);
+}
+
+.radius-window-floating {
+  border-radius: var(--radius-window-floating);
+}
+
+.radius-window-popup {
+  border-radius: var(--radius-window-popup);
+}
+
+/* Dialog radius utilities */
+.radius-dialog-large {
+  border-radius: var(--radius-dialog-large);
+}
+
+.radius-dialog-medium {
+  border-radius: var(--radius-dialog-medium);
+}
+
+.radius-dialog-small {
+  border-radius: var(--radius-dialog-small);
+}
+
+/* Button radius utilities */
+.radius-button-primary {
+  border-radius: var(--radius-button-primary);
+}
+
+.radius-button-secondary {
+  border-radius: var(--radius-button-secondary);
+}
+
+.radius-button-small {
+  border-radius: var(--radius-button-small);
+}
+
+.radius-button-pill {
+  border-radius: var(--radius-button-pill);
+}
+
+/* Form control radius utilities */
+.radius-input {
+  border-radius: var(--radius-input-text);
+}
+
+.radius-input-search {
+  border-radius: var(--radius-input-search);
+}
+
+.radius-select {
+  border-radius: var(--radius-select);
+}
+
+.radius-checkbox {
+  border-radius: var(--radius-checkbox);
+}
+
+/* Card radius utilities */
+.radius-card-small {
+  border-radius: var(--radius-card-small);
+}
+
+.radius-card-medium {
+  border-radius: var(--radius-card-medium);
+}
+
+.radius-card-large {
+  border-radius: var(--radius-card-large);
+}
+
+/* Media radius utilities */
+.radius-image-small {
+  border-radius: var(--radius-image-small);
+}
+
+.radius-image-medium {
+  border-radius: var(--radius-image-medium);
+}
+
+.radius-image-large {
+  border-radius: var(--radius-image-large);
+}
+
+.radius-avatar-square {
+  border-radius: var(--radius-avatar-square);
+}
+
+.radius-avatar-rounded {
+  border-radius: var(--radius-avatar-rounded);
+}
+
+/* Notification radius utilities */
+.radius-toast {
+  border-radius: var(--radius-toast);
+}
+
+.radius-tooltip {
+  border-radius: var(--radius-tooltip);
+}
+
+.radius-popover {
+  border-radius: var(--radius-popover);
+}
+
+/* OCR-specific radius utilities */
+.radius-ocr-modal {
+  border-radius: var(--radius-ocr-modal);
+}
+
+.radius-screenshot-overlay {
+  border-radius: var(--radius-screenshot-overlay);
+}
+
+.radius-history-item {
+  border-radius: var(--radius-history-item);
+}
+
+.radius-template-card {
+  border-radius: var(--radius-template-card);
+}
+
+.radius-settings-section {
+  border-radius: var(--radius-settings-section);
+}
+
+/* ===== BORDER RADIUS COMBINATIONS ===== */
+
+/* Top-only radius */
+.radius-top-sm {
+  border-top-left-radius: var(--radius-sm);
+  border-top-right-radius: var(--radius-sm);
+}
+
+.radius-top-md {
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.radius-top-lg {
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+/* Bottom-only radius */
+.radius-bottom-sm {
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.radius-bottom-md {
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.radius-bottom-lg {
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+/* Left-only radius */
+.radius-left-sm {
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.radius-left-md {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.radius-left-lg {
+  border-top-left-radius: var(--radius-lg);
+  border-bottom-left-radius: var(--radius-lg);
+}
+
+/* Right-only radius */
+.radius-right-sm {
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.radius-right-md {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.radius-right-lg {
+  border-top-right-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}

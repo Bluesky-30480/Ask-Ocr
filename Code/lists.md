@@ -1161,3 +1161,12 @@ Based on the comprehensive project requirements, tasks are organized into four p
 
 *Last Updated: 2025-10-25*
 *Additional tasks can be added to the Additional section as needed*
+
+### 10. Quick Chat & UI Polish
+- [x] **10.1** Implement Quick Chat auto-send functionality (from OCR)
+- [x] **10.2** Fix Quick Chat history persistence and loading
+- [x] **10.3** Modernize UI elements (Settings, Model Manager) with Apple-style design
+- [x] **10.4** Implement real-time streaming output for AI responses
+- [x] **10.5** Add Thinking Process panel for reasoning models
+- [x] **10.6** Add Markdown rendering and code highlighting to chat
+

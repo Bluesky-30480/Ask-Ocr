@@ -4,7 +4,8 @@
     "beforeBuildCommand": "powershell -Command \"Set-Location ../frontend; npm run build\"",
     "beforeDevCommand": "cd frontend && npm run dev",
     "devPath": "http://localhost:5173",
-    "distDir": "../frontend/dist"
+    "distDir": "../frontend/dist",
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "Ask OCR",
