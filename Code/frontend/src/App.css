@@ -3,8 +3,22 @@
   height: 100vh;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
   text-align: left;
   overflow: hidden;
+  background-color: var(--color-background-primary, #0f172a);
+  border-radius: 12px;
+}
+
+/* Round corners for the entire window */
+html, body {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Light theme support */
+:root[data-theme="light"] #root {
+  background-color: #ffffff;
 }
 
 .logo {

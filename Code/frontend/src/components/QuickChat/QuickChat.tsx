@@ -1,16 +1,30 @@
 /**
- * Quick Chat Component
- * ChatGPT-like interface with model selection and file-system persistence
+ * Quick Chat Component - Advanced AI Chat Interface
+ * Features: Model picker, file uploads, deep think, web search, math formulas, streaming
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { universalAI } from '../../services/ai/universal-ai.service';
 import { ollamaManager } from '../../services/ai/ollama-manager.service';
 import { writeTextFile, readTextFile, createDir, exists, BaseDirectory } from '@tauri-apps/api/fs';
 import type { AIAttachment } from '@shared/types/ai.types';
+import { 
+  Plus, Send, Paperclip, FileText, Trash2, Edit3, Check, X, 
+  ChevronDown, Bot, User, Sparkles, Globe, Brain, Eye, EyeOff, 
+  Download, MessageSquare, Copy, RotateCcw, Loader2
+} from 'lucide-react';
 import './QuickChat.css';
+
+// Type definition for model properties
+interface ModelDefinition {
+  id: string;
+  name: string;
+  vision?: boolean;
+  deepThink?: boolean;
+  webSearch?: boolean;
+}
 
 interface Message {
   id: string;
@@ -19,6 +33,8 @@ interface Message {
   thinking?: string;
   timestamp: number;
   model?: string;
+  attachments?: AIAttachment[];
+  isError?: boolean;
 }
 
 interface ChatSession {
@@ -30,50 +46,91 @@ interface ChatSession {
   model?: string;
 }
 
+interface ModelInfo {
+  value: string;
+  label: string;
+  group: string;
+  provider: string;
+  supportsVision?: boolean;
+  supportsWebSearch?: boolean;
+  supportsDeepThink?: boolean;
+}
+
 const DATA_DIR = 'blueskyapp/ask';
 const HISTORY_FILE = 'chat_history.json';
+
+const WEB_SEARCH_MODELS = ['perplexity', 'sonar'];
+const DEEP_THINK_MODELS = ['deepseek', 'claude-3-opus', 'gpt-4', 'o1'];
+const VISION_MODELS = ['gpt-4o', 'gpt-4-vision', 'gemini', 'claude-3', 'llava'];
 
 interface QuickChatProps {
   initialText?: string;
 }
 
 export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
+  // Session State
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Input State
   const [inputText, setInputText] = useState(initialText || '');
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<string>('local');
-  const [availableModels, setAvailableModels] = useState<{ value: string; label: string; group: string; provider: string }[]>([]);
+  const [attachments, setAttachments] = useState<AIAttachment[]>([]);
+  
+  // Model State
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  
+  // UI State
+  const [isLoading, setIsLoading] = useState(false);
+  const [showThinking, setShowThinking] = useState(false);
+  const [deepThinkEnabled, setDeepThinkEnabled] = useState(false);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
-  const [attachments, setAttachments] = useState<AIAttachment[]>([]);
-  const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [showThinking, setShowThinking] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [isInstallingModel, setIsInstallingModel] = useState(false);
+  const [installProgress, setInstallProgress] = useState('');
+  const [streamingContent, setStreamingContent] = useState('');
+  
+  // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
-  // Ref to track sessions for async operations to avoid stale closures
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sessionsRef = useRef(sessions);
+
   useEffect(() => {
     sessionsRef.current = sessions;
   }, [sessions]);
 
-  // Handle initial text (Auto-send)
+  // Current model capabilities
+  const modelCapabilities = useMemo(() => {
+    const model = availableModels.find(m => m.value === selectedModel);
+    const modelLower = selectedModel.toLowerCase();
+    return {
+      supportsVision: model?.supportsVision || VISION_MODELS.some(v => modelLower.includes(v)),
+      supportsWebSearch: model?.supportsWebSearch || WEB_SEARCH_MODELS.some(v => modelLower.includes(v)),
+      supportsDeepThink: model?.supportsDeepThink || DEEP_THINK_MODELS.some(v => modelLower.includes(v)),
+    };
+  }, [selectedModel, availableModels]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
+    }
+  }, [inputText]);
+
+  // Handle initial text
   useEffect(() => {
     if (initialText && modelsLoaded) {
-      // If initialText is provided (e.g. from OCR), we start a FRESH session state
-      // Create the session immediately so it appears in history
       createNewSession(initialText);
-      
-      // Auto-send the message
-      // We use a timeout to ensure state is settled and to allow the UI to render the initial state first
-      const timer = setTimeout(() => {
-        handleSendMessage(initialText);
-      }, 100);
-      
+      const timer = setTimeout(() => handleSendMessage(initialText), 100);
       return () => clearTimeout(timer);
     }
   }, [initialText, modelsLoaded]);
@@ -83,41 +140,34 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
     initializeStorage();
     loadModels();
 
-    // Click outside listener for dropdown
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsModelDropdownOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Scroll to bottom on new message
+  // Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, streamingContent]);
 
   const initializeStorage = async () => {
     try {
-      // Check if directory exists
       const dirExists = await exists(DATA_DIR, { dir: BaseDirectory.AppData });
       if (!dirExists) {
         await createDir(DATA_DIR, { dir: BaseDirectory.AppData, recursive: true });
       }
       loadSessions();
-    } catch (error) {
-      console.error('Failed to initialize storage:', error);
-      // Fallback to localStorage if FS fails
+    } catch {
       loadSessionsFromLocalStorage();
     }
   };
 
   const loadModels = async () => {
-    // Initialize AI service with keys from storage to ensure we can fetch models
     universalAI.initialize({
       openaiApiKey: localStorage.getItem('openai_api_key') || '',
       geminiApiKey: localStorage.getItem('gemini_api_key') || '',
@@ -127,18 +177,17 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
       perplexityApiKey: localStorage.getItem('perplexity_api_key') || '',
     });
 
-    const models: { value: string; label: string; group: string; provider: string }[] = [];
+    const models: ModelInfo[] = [];
 
-    // Cloud Models Configuration
     const cloudProviders = [
       {
         key: 'openai_api_key',
         provider: 'openai',
         group: 'OpenAI',
         models: [
-          { id: 'gpt-4o', name: 'GPT-4o' },
-          { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
-          { id: 'gpt-4', name: 'GPT-4' },
+          { id: 'gpt-4o', name: 'GPT-4o', vision: true, deepThink: true },
+          { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', deepThink: true },
+          { id: 'gpt-4', name: 'GPT-4', deepThink: true },
           { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
         ]
       },
@@ -147,8 +196,8 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
         provider: 'gemini',
         group: 'Google Gemini',
         models: [
-          { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
-          { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+          { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', vision: true },
+          { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', vision: true },
           { id: 'gemini-pro', name: 'Gemini Pro' },
         ]
       },
@@ -157,9 +206,9 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
         provider: 'claude',
         group: 'Anthropic Claude',
         models: [
-          { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
-          { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet' },
-          { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku' },
+          { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', vision: true, deepThink: true },
+          { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', vision: true },
+          { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', vision: true },
         ]
       },
       {
@@ -167,53 +216,60 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
         provider: 'deepseek',
         group: 'DeepSeek',
         models: [
-          { id: 'deepseek-chat', name: 'DeepSeek Chat' },
-          { id: 'deepseek-coder', name: 'DeepSeek Coder' },
+          { id: 'deepseek-chat', name: 'DeepSeek Chat', deepThink: true },
+          { id: 'deepseek-coder', name: 'DeepSeek Coder', deepThink: true },
         ]
       },
       {
         key: 'grok_api_key',
         provider: 'grok',
         group: 'xAI Grok',
-        models: [
-          { id: 'grok-1', name: 'Grok-1' },
-        ]
+        models: [{ id: 'grok-1', name: 'Grok-1' }]
       },
       {
         key: 'perplexity_api_key',
         provider: 'perplexity',
         group: 'Perplexity',
         models: [
-          { id: 'llama-3-sonar-large-32k-online', name: 'Sonar Large Online' },
-          { id: 'llama-3-sonar-small-32k-online', name: 'Sonar Small Online' },
-          { id: 'llama-3-70b-instruct', name: 'Llama 3 70B' },
+          { id: 'llama-3-sonar-large-32k-online', name: 'Sonar Large (Web)', webSearch: true },
+          { id: 'llama-3-sonar-small-32k-online', name: 'Sonar Small (Web)', webSearch: true },
         ]
       }
     ];
 
-    // Add configured cloud models
     for (const cp of cloudProviders) {
       if (localStorage.getItem(cp.key)) {
-        let modelsList = cp.models;
+        let modelsList: ModelDefinition[] = cp.models;
         
-        // Try to auto-fetch newest models for supported providers
         if (['openai', 'gemini', 'deepseek', 'grok'].includes(cp.provider)) {
-            try {
-                const fetched = await universalAI.listModels(cp.provider);
-                if (fetched && fetched.length > 0) {
-                    modelsList = fetched;
-                }
-            } catch (e) {
-                console.warn(`Could not fetch models for ${cp.provider}, using defaults`);
+          try {
+            const fetched = await universalAI.listModels(cp.provider);
+            if (fetched?.length > 0) {
+              modelsList = fetched.map(m => {
+                const originalModel = (cp.models as ModelDefinition[]).find(cm => cm.id === m.id);
+                return { 
+                  id: m.id, 
+                  name: m.name,
+                  vision: originalModel?.vision,
+                  deepThink: originalModel?.deepThink,
+                  webSearch: originalModel?.webSearch
+                };
+              });
             }
+          } catch {
+            console.warn(`Could not fetch models for ${cp.provider}`);
+          }
         }
 
-        modelsList.forEach(model => {
+        modelsList.forEach(m => {
           models.push({
-            value: model.id,
-            label: model.name,
+            value: m.id,
+            label: m.name,
             group: cp.group,
-            provider: cp.provider
+            provider: cp.provider,
+            supportsVision: m.vision,
+            supportsDeepThink: m.deepThink,
+            supportsWebSearch: m.webSearch
           });
         });
       }
@@ -221,40 +277,36 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
 
     try {
       const localModels = await ollamaManager.listModels();
-      if (localModels.length > 0) {
-        localModels.forEach(m => {
-          let label = m.name;
-          // Add parameter size and quantization info if available
-          if (m.details) {
-            const parts = [];
-            if (m.details.parameter_size) parts.push(m.details.parameter_size);
-            if (m.details.quantization_level) parts.push(m.details.quantization_level);
-            
-            if (parts.length > 0) {
-              label = `${m.name} (${parts.join(', ')})`;
-            }
-          }
-          
-          models.push({ value: m.name, label: label, group: 'Local', provider: 'local' });
+      localModels.forEach(m => {
+        const parts = [];
+        if (m.details?.parameter_size) parts.push(m.details.parameter_size);
+        if (m.details?.quantization_level) parts.push(m.details.quantization_level);
+        const label = parts.length > 0 ? `${m.name} (${parts.join(', ')})` : m.name;
+        
+        models.push({ 
+          value: m.name, 
+          label, 
+          group: 'Local (Ollama)', 
+          provider: 'local',
+          supportsVision: m.name.includes('llava') || m.name.includes('vision'),
+          supportsDeepThink: m.name.includes('deepseek') || m.name.includes('mixtral')
         });
-      }
-    } catch (error) {
-      console.error('Failed to load models:', error);
+      });
+    } catch {
+      console.warn('Failed to load local models');
     }
-    
+
     setAvailableModels(models);
     setModelsLoaded(true);
 
-    // Update selection if current selection is invalid or default 'local'
-    const isCurrentValid = models.some(m => m.value === selectedModel);
-    if ((!isCurrentValid || selectedModel === 'local') && models.length > 0) {
-        // Prefer a local model if available, otherwise first cloud model
-        const firstLocal = models.find(m => m.group === 'Local');
-        if (firstLocal) {
-            setSelectedModel(firstLocal.value);
-        } else {
-            setSelectedModel(models[0].value);
-        }
+    if (models.length > 0) {
+      const savedModel = localStorage.getItem('quickchat_selected_model');
+      if (savedModel && models.some(m => m.value === savedModel)) {
+        setSelectedModel(savedModel);
+      } else {
+        const firstLocal = models.find(m => m.group === 'Local (Ollama)');
+        setSelectedModel(firstLocal?.value || models[0].value);
+      }
     }
   };
 
@@ -268,51 +320,39 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
         const parsed = JSON.parse(content);
         setSessions(parsed);
         
-        // Only restore last session if we DON'T have initialText
         if (parsed.length > 0 && !initialText) {
           setCurrentSessionId(parsed[0].id);
           setMessages(parsed[0].messages);
         }
       } else {
-        // Try migration from localStorage
         loadSessionsFromLocalStorage();
       }
-    } catch (error) {
-      console.error('Failed to load sessions from disk:', error);
+    } catch {
       loadSessionsFromLocalStorage();
     }
   };
 
   const loadSessionsFromLocalStorage = () => {
-    const savedSessions = localStorage.getItem('quick_chat_sessions');
-    if (savedSessions) {
+    const saved = localStorage.getItem('quick_chat_sessions');
+    if (saved) {
       try {
-        const parsed = JSON.parse(savedSessions);
+        const parsed = JSON.parse(saved);
         setSessions(parsed);
-        // Only restore last session if we DON'T have initialText
         if (parsed.length > 0 && !initialText) {
           setCurrentSessionId(parsed[0].id);
           setMessages(parsed[0].messages);
         }
-      } catch (error) {
-        console.error('Failed to load chat sessions from local storage:', error);
-      }
+      } catch { /* ignore */ }
     }
   };
 
-  const saveSessions = async (updatedSessions: ChatSession[]) => {
-    setSessions(updatedSessions);
-    
-    // Save to disk
+  const saveSessions = async (updated: ChatSession[]) => {
+    setSessions(updated);
     try {
       const filePath = `${DATA_DIR}/${HISTORY_FILE}`;
-      await writeTextFile(filePath, JSON.stringify(updatedSessions, null, 2), { dir: BaseDirectory.AppData });
-    } catch (error) {
-      console.error('Failed to save sessions to disk:', error);
-    }
-
-    // Backup to localStorage
-    localStorage.setItem('quick_chat_sessions', JSON.stringify(updatedSessions));
+      await writeTextFile(filePath, JSON.stringify(updated, null, 2), { dir: BaseDirectory.AppData });
+    } catch { /* ignore */ }
+    localStorage.setItem('quick_chat_sessions', JSON.stringify(updated));
   };
 
   const createNewSession = (prefillText?: string) => {
@@ -325,15 +365,12 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
       model: selectedModel
     };
 
-    const updatedSessions = [newSession, ...sessions];
-    saveSessions(updatedSessions);
+    const updated = [newSession, ...sessions];
+    saveSessions(updated);
     setCurrentSessionId(newSession.id);
     setMessages([]);
-    if (prefillText) {
-        setInputText(prefillText);
-    } else {
-        setInputText('');
-    }
+    setInputText(prefillText || '');
+    setAttachments([]);
   };
 
   const switchSession = (sessionId: string) => {
@@ -341,38 +378,27 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
     if (session) {
       setCurrentSessionId(sessionId);
       setMessages(session.messages);
-      if (session.model) {
-        setSelectedModel(session.model);
-      }
+      if (session.model) setSelectedModel(session.model);
     }
   };
 
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
-  const deleteSession = (sessionId: string) => {
-    setDeleteConfirmId(sessionId);
-  };
+  const deleteSession = (sessionId: string) => setDeleteConfirmId(sessionId);
 
   const confirmDelete = () => {
     if (!deleteConfirmId) return;
     
-    const updatedSessions = sessions.filter(s => s.id !== deleteConfirmId);
-    saveSessions(updatedSessions);
+    const updated = sessions.filter(s => s.id !== deleteConfirmId);
+    saveSessions(updated);
     
     if (currentSessionId === deleteConfirmId) {
-      if (updatedSessions.length > 0) {
-        setCurrentSessionId(updatedSessions[0].id);
-        setMessages(updatedSessions[0].messages);
+      if (updated.length > 0) {
+        setCurrentSessionId(updated[0].id);
+        setMessages(updated[0].messages);
       } else {
         setCurrentSessionId(null);
         setMessages([]);
       }
     }
-    
-    setDeleteConfirmId(null);
-  };
-
-  const cancelDelete = () => {
     setDeleteConfirmId(null);
   };
 
@@ -384,95 +410,150 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
 
   const saveTitle = () => {
     if (editingSessionId && editTitle.trim()) {
-      const updatedSessions = sessions.map(s => 
+      const updated = sessions.map(s => 
         s.id === editingSessionId ? { ...s, title: editTitle.trim() } : s
       );
-      saveSessions(updatedSessions);
+      saveSessions(updated);
     }
     setEditingSessionId(null);
     setEditTitle('');
   };
 
-  const handleEditKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      saveTitle();
-    } else if (e.key === 'Escape') {
-      setEditingSessionId(null);
-      setEditTitle('');
-    }
-  };
-
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const newAttachments: AIAttachment[] = [];
-      
-      for (let i = 0; i < e.target.files.length; i++) {
-        const file = e.target.files[i];
+    if (!e.target.files?.length) return;
+    
+    const newAttachments: AIAttachment[] = [];
+    
+    for (const file of Array.from(e.target.files)) {
+      try {
         const reader = new FileReader();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
 
-        try {
-          const dataUrl = await new Promise<string>((resolve, reject) => {
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
+        const base64Data = dataUrl.split(',')[1];
+        let type: 'image' | 'document' | 'audio' | 'video' = 'document';
+        if (file.type.startsWith('image/')) type = 'image';
+        else if (file.type.startsWith('audio/')) type = 'audio';
+        else if (file.type.startsWith('video/')) type = 'video';
 
-          // Extract base64 data (remove data:image/png;base64, prefix)
-          const base64Data = dataUrl.split(',')[1];
-          
-          let type: 'image' | 'document' | 'audio' | 'video' = 'document';
-          if (file.type.startsWith('image/')) type = 'image';
-          else if (file.type.startsWith('audio/')) type = 'audio';
-          else if (file.type.startsWith('video/')) type = 'video';
-
-          newAttachments.push({
-            type,
-            data: base64Data,
-            mimeType: file.type,
-            filename: file.name
-          });
-        } catch (error) {
-          console.error('Error reading file:', error);
-        }
-      }
-
-      setAttachments([...attachments, ...newAttachments]);
-      // Reset input
-      if (fileInputRef.current) fileInputRef.current.value = '';
+        newAttachments.push({
+          type,
+          data: base64Data,
+          mimeType: file.type,
+          filename: file.name
+        });
+      } catch { /* ignore */ }
     }
+
+    setAttachments([...attachments, ...newAttachments]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeAttachment = (index: number) => {
-    const newAttachments = [...attachments];
-    newAttachments.splice(index, 1);
-    setAttachments(newAttachments);
+    setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  const handleSendMessage = async (contentOverride?: string) => {
-    const textToSend = contentOverride !== undefined ? contentOverride : inputText;
+  const copyMessage = async (content: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(id);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch { /* ignore */ }
+  };
+
+  const regenerateMessage = async () => {
+    if (messages.length < 2) return;
     
-    if ((!textToSend.trim() && attachments.length === 0) || isLoading) return;
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    if (!lastUserMsg) return;
+    
+    const newMessages = messages.slice(0, -1);
+    setMessages(newMessages);
+    
+    await handleSendMessage(lastUserMsg.content, newMessages);
+  };
+
+  const installModel = async (modelName: string) => {
+    setIsInstallingModel(true);
+    setInstallProgress(`Installing ${modelName}...`);
+    
+    try {
+      // Use ollama downloadModel method
+      await ollamaManager.downloadModel(modelName, (progress) => {
+        if (progress.status === 'downloading') {
+          const percent = progress.totalBytes > 0 
+            ? Math.round((progress.downloadedBytes / progress.totalBytes) * 100) 
+            : 0;
+          setInstallProgress(`Downloading ${modelName}: ${percent}%`);
+        } else if (progress.status === 'verifying') {
+          setInstallProgress(`Verifying ${modelName}...`);
+        }
+      });
+      setInstallProgress(`${modelName} installed successfully!`);
+      await loadModels();
+      setTimeout(() => {
+        setIsInstallingModel(false);
+        setInstallProgress('');
+      }, 2000);
+    } catch (e) {
+      setInstallProgress(`Failed to install: ${e}`);
+      setTimeout(() => {
+        setIsInstallingModel(false);
+        setInstallProgress('');
+      }, 3000);
+    }
+  };
+
+  // Clean thinking tags from content
+  const cleanContent = (content: string): { clean: string; thinking: string } => {
+    let thinking = '';
+    let clean = content;
+    
+    // Extract thinking content
+    const thinkingMatch = content.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+    if (thinkingMatch) {
+      thinking = thinkingMatch[1].trim();
+      clean = content.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+    }
+    
+    // Remove other markers
+    clean = clean
+      .replace(/\*thinking:[\s\S]*?\*output:/gi, '')
+      .replace(/\*\/thinking[\s\S]*?\*\/output/gi, '')
+      .replace(/<output>/gi, '')
+      .replace(/<\/output>/gi, '')
+      .trim();
+    
+    return { clean, thinking };
+  };
+
+  const handleSendMessage = async (contentOverride?: string, existingMessages?: Message[]) => {
+    const text = contentOverride ?? inputText;
+    if ((!text.trim() && attachments.length === 0) || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: textToSend.trim(),
+      content: text.trim(),
       timestamp: Date.now(),
+      attachments: attachments.length > 0 ? [...attachments] : undefined
     };
 
-    const newMessages = [...messages, userMessage];
+    const baseMessages = existingMessages ?? messages;
+    const newMessages = [...baseMessages, userMessage];
     setMessages(newMessages);
-    if (contentOverride === undefined) {
-        setInputText('');
-    }
+    if (!contentOverride) setInputText('');
     const currentAttachments = [...attachments];
     setAttachments([]);
     setIsLoading(true);
+    setStreamingContent('');
 
-    // Create placeholder for assistant message
-    const assistantMessageId = (Date.now() + 1).toString();
+    const assistantId = (Date.now() + 1).toString();
     const assistantMessage: Message = {
-      id: assistantMessageId,
+      id: assistantId,
       role: 'assistant',
       content: '',
       timestamp: Date.now(),
@@ -481,131 +562,104 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
     setMessages([...newMessages, assistantMessage]);
 
     try {
-      // Determine provider and model name
-      const selectedModelObj = availableModels.find(m => m.value === selectedModel);
+      const modelInfo = availableModels.find(m => m.value === selectedModel);
       let provider: 'local' | 'openai' | 'perplexity' | 'gemini' | 'claude' | 'deepseek' | 'grok' = 'local';
       let modelName = selectedModel;
 
-      if (selectedModelObj) {
-        provider = selectedModelObj.provider as any;
-        // For cloud providers, the value IS the model name
-        modelName = selectedModelObj.value;
-      } else if (['openai', 'perplexity', 'gemini', 'claude', 'deepseek', 'grok'].includes(selectedModel)) {
-        // Fallback for legacy behavior or direct provider selection
-        provider = selectedModel as any;
-        modelName = ''; 
+      if (modelInfo) {
+        provider = modelInfo.provider as typeof provider;
+        modelName = modelInfo.value;
       }
 
       let currentContent = '';
       let currentThinking = '';
 
+      // Add system prompt for deep think mode
+      let systemPrompt = '';
+      if (deepThinkEnabled && modelCapabilities.supportsDeepThink) {
+        systemPrompt = 'Think deeply and step by step. Show your reasoning process.';
+      }
+      if (webSearchEnabled && modelCapabilities.supportsWebSearch) {
+        systemPrompt += ' Search the web for current information when needed.';
+      }
+
       await universalAI.sendStreamingRequest({
-        query: userMessage.content,
+        query: systemPrompt ? `${systemPrompt}\n\n${userMessage.content}` : userMessage.content,
         forceProvider: provider,
         forceModel: modelName,
         forceTemplate: 'ai_assistant',
         attachments: currentAttachments,
       }, (chunk) => {
-        if (chunk.content) currentContent += chunk.content;
-        if (chunk.thinking) currentThinking += chunk.thinking;
-        
-        setMessages(prev => prev.map(m => 
-          m.id === assistantMessageId 
-            ? { ...m, content: currentContent, thinking: currentThinking } 
-            : m
-        ));
+        if (chunk.content) {
+          currentContent += chunk.content;
+          const { clean, thinking } = cleanContent(currentContent);
+          setStreamingContent(clean);
+          if (thinking) currentThinking = thinking;
+        }
+        if (chunk.thinking) {
+          currentThinking += chunk.thinking;
+        }
       });
 
-      // Update session
-      // Use sessionsRef.current to ensure we have the latest sessions list
-      const currentSessionsList = sessionsRef.current;
+      const { clean: finalContent, thinking: finalThinking } = cleanContent(currentContent);
       
-      // Final message state
-      const finalAssistantMessage = {
-          ...assistantMessage,
-          content: currentContent,
-          thinking: currentThinking
+      const finalMessage = {
+        ...assistantMessage,
+        content: finalContent,
+        thinking: currentThinking || finalThinking
       };
       
-      const finalMessages = [...newMessages, finalAssistantMessage];
+      setMessages([...newMessages, finalMessage]);
+      setStreamingContent('');
+
+      // Save session
+      const currentSessions = sessionsRef.current;
+      const finalMessages = [...newMessages, finalMessage];
 
       if (currentSessionId) {
-        // Generate title if it's the first message exchange
-        let sessionTitle = currentSessionsList.find(s => s.id === currentSessionId)?.title || 'New Chat';
+        let title = currentSessions.find(s => s.id === currentSessionId)?.title || 'New Chat';
         
-        // Check if this is the first message in the session (messages is empty before this send)
-        if (messages.length === 0) {
-             // Try to generate a better title using local model
-             try {
-                 // Use the first 50 chars as fallback
-                 sessionTitle = userMessage.content.substring(0, 50);
-                 
-                 // Fire and forget title generation
-                 generateTitle(userMessage.content).then(title => {
-                     if (title) {
-                         // We need to read the latest sessions again inside the callback
-                         const latestSessions = sessionsRef.current;
-                         const updated = latestSessions.map(s => 
-                             s.id === currentSessionId ? { ...s, title: title } : s
-                         );
-                         saveSessions(updated);
-                     }
-                 });
-             } catch (e) {
-                 console.warn('Failed to initiate title generation', e);
-             }
+        if (baseMessages.length === 0) {
+          title = text.substring(0, 40) + (text.length > 40 ? '...' : '');
+          generateTitle(text).then(t => {
+            if (t) {
+              const latest = sessionsRef.current;
+              const updated = latest.map(s => s.id === currentSessionId ? { ...s, title: t } : s);
+              saveSessions(updated);
+            }
+          });
         }
 
-        const updatedSessions = currentSessionsList.map(s => {
-          if (s.id === currentSessionId) {
-            return {
-              ...s,
-              messages: finalMessages,
-              updatedAt: Date.now(),
-              title: sessionTitle,
-              model: selectedModel
-            };
-          }
-          return s;
-        });
-        saveSessions(updatedSessions);
+        const updated = currentSessions.map(s => 
+          s.id === currentSessionId 
+            ? { ...s, messages: finalMessages, updatedAt: Date.now(), title, model: selectedModel }
+            : s
+        );
+        saveSessions(updated);
       } else {
-        // Create new session with these messages
         const newSession: ChatSession = {
-            id: Date.now().toString(),
-            title: userMessage.content.substring(0, 30),
-            messages: finalMessages,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            model: selectedModel
+          id: Date.now().toString(),
+          title: text.substring(0, 40),
+          messages: finalMessages,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          model: selectedModel
         };
-        
-        const updatedSessions = [newSession, ...currentSessionsList];
-        saveSessions(updatedSessions);
+        saveSessions([newSession, ...currentSessions]);
         setCurrentSessionId(newSession.id);
-        
-        // Trigger title generation for this new session
-        generateTitle(userMessage.content).then(title => {
-             if (title) {
-                 const latestSessions = sessionsRef.current;
-                 const updated = latestSessions.map(s => 
-                     s.id === newSession.id ? { ...s, title: title } : s
-                 );
-                 saveSessions(updated);
-             }
-        });
       }
     } catch (error) {
-      console.error('Chat error:', error);
-      const errorMessage: Message = {
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: `Error: ${error instanceof Error ? error.message : 'Failed to get response'}`,
         timestamp: Date.now(),
+        isError: true
       };
-      setMessages([...newMessages, errorMessage]);
+      setMessages([...newMessages, errorMsg]);
     } finally {
       setIsLoading(false);
+      setStreamingContent('');
     }
   };
 
@@ -617,40 +671,63 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
   };
 
   const generateTitle = async (content: string): Promise<string> => {
-      try {
-          // Use a lightweight local model for titling if possible, or just the current one
-          // We'll ask for a very short summary
-          const prompt = `Summarize this into a short chat title (max 5 words): "${content.substring(0, 200)}"`;
-          
-          // Use ollama directly for this background task to avoid messing with main chat state
-          // We try to find a small model
-          const models = await ollamaManager.listModels();
-          const smallModel = models.find(m => m.name.includes('llama') || m.name.includes('mistral') || m.name.includes('phi'))?.name || models[0]?.name;
-          
-          if (smallModel) {
-              const response = await ollamaManager.generate(smallModel, prompt);
-              return response.replace(/["']/g, '').trim();
-          }
-          return content.substring(0, 30);
-      } catch (e) {
-          console.warn('Title generation failed:', e);
-          return content.substring(0, 30);
+    try {
+      const models = await ollamaManager.listModels();
+      // Prefer deepseek-r1 for title generation, fallback to other models
+      const preferredModels = ['deepseek-r1', 'deepseek', 'llama', 'qwen', 'mistral', 'phi'];
+      let targetModel = '';
+      
+      for (const preferred of preferredModels) {
+        const found = models.find(m => m.name.toLowerCase().includes(preferred));
+        if (found) {
+          targetModel = found.name;
+          break;
+        }
       }
+      
+      if (!targetModel && models.length > 0) {
+        targetModel = models[0].name;
+      }
+      
+      if (targetModel) {
+        const response = await ollamaManager.generate(
+          targetModel, 
+          `Create a very short 3-5 word title for this message. Only respond with the title, no quotes or explanation: "${content.substring(0, 100)}"`
+        );
+        return response.replace(/["']/g, '').trim().substring(0, 50);
+      }
+    } catch { /* ignore */ }
+    return content.substring(0, 40);
   };
 
+  // Group models by provider
+  const groupedModels = useMemo(() => {
+    const groups: Record<string, ModelInfo[]> = {};
+    availableModels.forEach(m => {
+      if (!groups[m.group]) groups[m.group] = [];
+      groups[m.group].push(m);
+    });
+    return groups;
+  }, [availableModels]);
+
+  const selectedModelInfo = availableModels.find(m => m.value === selectedModel);
+
   return (
-    <div className="quick-chat-container">
-      {/* Delete Confirmation Modal */}
+    <div className="qc-container">
+      {/* Delete Modal */}
       {deleteConfirmId && (
-        <div className="delete-confirmation-overlay" onClick={cancelDelete}>
-          <div className="delete-confirmation-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="qc-modal-overlay" onClick={() => setDeleteConfirmId(null)}>
+          <div className="qc-modal" onClick={e => e.stopPropagation()}>
+            <div className="qc-modal-icon delete">
+              <Trash2 size={24} />
+            </div>
             <h3>Delete Chat?</h3>
-            <p>Are you sure you want to delete this chat session? This action cannot be undone.</p>
-            <div className="delete-confirmation-actions">
-              <button className="btn-cancel" onClick={cancelDelete}>
+            <p>This action cannot be undone.</p>
+            <div className="qc-modal-actions">
+              <button className="qc-btn secondary" onClick={() => setDeleteConfirmId(null)}>
                 Cancel
               </button>
-              <button className="btn-delete" onClick={confirmDelete}>
+              <button className="qc-btn danger" onClick={confirmDelete}>
                 Delete
               </button>
             </div>
@@ -659,183 +736,302 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
       )}
 
       {/* Sidebar */}
-      <div className="qc-sidebar">
+      <aside className="qc-sidebar">
         <div className="qc-sidebar-header">
-          <button type="button" className="qc-new-chat-btn" onClick={() => createNewSession()}>
-            <span className="icon">+</span> New Chat
+          <button className="qc-new-chat" onClick={() => createNewSession()}>
+            <Plus size={18} />
+            <span>New Chat</span>
           </button>
         </div>
 
-        <div className="qc-sessions-list">
-          <div className="qc-list-header">History</div>
-          {sessions.map((session) => (
+        <div className="qc-sessions">
+          <div className="qc-sessions-label">Chat History</div>
+          {sessions.map(session => (
             <div
               key={session.id}
-              className={`qc-session-item ${currentSessionId === session.id ? 'active' : ''}`}
+              className={`qc-session ${currentSessionId === session.id ? 'active' : ''}`}
               onClick={() => switchSession(session.id)}
             >
-              <span className="qc-session-icon">💬</span>
-              <div className="qc-session-info">
+              <MessageSquare size={16} className="qc-session-icon" />
+              <div className="qc-session-content">
                 {editingSessionId === session.id ? (
                   <input
-                    type="text"
-                    className="qc-session-edit-input"
+                    className="qc-session-edit"
                     value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
+                    onChange={e => setEditTitle(e.target.value)}
                     onBlur={saveTitle}
-                    onKeyDown={handleEditKeyDown}
+                    onKeyDown={e => e.key === 'Enter' && saveTitle()}
+                    onClick={e => e.stopPropagation()}
                     autoFocus
-                    onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
                   <>
-                    <div className="qc-session-title" onDoubleClick={(e) => startEditing(session, e)}>
-                      {session.title || 'New Chat'}
-                    </div>
-                    <div className="qc-session-date">
+                    <span className="qc-session-title">{session.title || 'New Chat'}</span>
+                    <span className="qc-session-date">
                       {new Date(session.updatedAt).toLocaleDateString()}
-                    </div>
+                    </span>
                   </>
                 )}
               </div>
-              
               {editingSessionId !== session.id && (
                 <div className="qc-session-actions">
-                  <button
-                    className="qc-action-btn edit"
-                    onClick={(e) => startEditing(session, e)}
-                    title="Rename"
-                  >
-                    ✎
+                  <button onClick={e => startEditing(session, e)} title="Rename">
+                    <Edit3 size={14} />
                   </button>
-                  <button
-                    className="qc-action-btn delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteSession(session.id);
-                    }}
+                  <button 
+                    onClick={e => { e.stopPropagation(); deleteSession(session.id); }}
                     title="Delete"
                   >
-                    ×
+                    <Trash2 size={14} />
                   </button>
                 </div>
               )}
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Main Chat Area */}
-      <div className="qc-main">
-        <div className="qc-header">
+        {/* Quick Install */}
+        <div className="qc-sidebar-footer">
+          {isInstallingModel ? (
+            <div className="qc-install-progress">
+              <Loader2 size={14} className="spin" />
+              <span>{installProgress}</span>
+            </div>
+          ) : (
+            <div className="qc-quick-install">
+              <span>Quick Install</span>
+              <div className="qc-install-btns">
+                {/* Show recommended models that are NOT installed */}
+                {['llama3.2:3b', 'qwen2.5:3b', 'deepseek-r1:1.5b', 'mistral:7b', 'gemma2:2b', 'phi3:mini']
+                  .filter(m => !availableModels.some(am => am.value === m || am.value.startsWith(m.split(':')[0])))
+                  .slice(0, 3)
+                  .map(m => (
+                  <button 
+                    key={m} 
+                    onClick={() => installModel(m)}
+                    title={`Install ${m}`}
+                  >
+                    <Download size={12} />
+                    {m.split(':')[0]}
+                  </button>
+                ))}
+                {/* If all recommended are installed, show message */}
+                {['llama3.2:3b', 'qwen2.5:3b', 'deepseek-r1:1.5b', 'mistral:7b', 'gemma2:2b', 'phi3:mini']
+                  .filter(m => !availableModels.some(am => am.value === m || am.value.startsWith(m.split(':')[0])))
+                  .length === 0 && (
+                  <span className="qc-all-installed">✓ All recommended installed</span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Main Area */}
+      <main className="qc-main">
+        {/* Header */}
+        <header className="qc-header">
+          {/* Model Selector */}
           <div className="qc-model-selector" ref={dropdownRef}>
             <button 
-              className={`qc-model-trigger ${isModelDropdownOpen ? 'active' : ''}`}
+              className={`qc-model-trigger ${isModelDropdownOpen ? 'open' : ''}`}
               onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
             >
-              <span className="qc-current-model">
-                {availableModels.find(m => m.value === selectedModel)?.label || selectedModel}
-              </span>
-              <span className="qc-chevron">▼</span>
+              <div className="qc-model-info">
+                <Bot size={16} />
+                <span>{selectedModelInfo?.label || selectedModel || 'Select Model'}</span>
+              </div>
+              <ChevronDown size={16} className={`chevron ${isModelDropdownOpen ? 'open' : ''}`} />
             </button>
             
             {isModelDropdownOpen && (
               <div className="qc-model-dropdown">
-                {/* Group by provider/group */}
-                {Array.from(new Set(availableModels.map(m => m.group))).map(group => (
-                  <div key={group}>
-                    <div className="qc-dropdown-group-label">{group}</div>
-                    {availableModels.filter(m => m.group === group).map(m => (
+                {Object.entries(groupedModels).map(([group, models]) => (
+                  <div key={group} className="qc-model-group">
+                    <div className="qc-model-group-label">{group}</div>
+                    {models.map(m => (
                       <button
                         key={m.value}
-                        className={`qc-model-option ${selectedModel === m.value ? 'selected' : ''}`}
+                        className={`qc-model-option ${selectedModel === m.value ? 'active' : ''}`}
                         onClick={() => {
                           setSelectedModel(m.value);
+                          localStorage.setItem('quickchat_selected_model', m.value);
                           setIsModelDropdownOpen(false);
                         }}
                       >
-                        {m.label}
-                        {selectedModel === m.value && <span className="qc-check">✓</span>}
+                        <span className="qc-model-name">{m.label}</span>
+                        <div className="qc-model-badges">
+                          {m.supportsVision && <span className="badge vision" title="Vision">👁</span>}
+                          {m.supportsWebSearch && <span className="badge web" title="Web Search">🌐</span>}
+                          {m.supportsDeepThink && <span className="badge think" title="Deep Think">🧠</span>}
+                        </div>
+                        {selectedModel === m.value && <Check size={14} className="check" />}
                       </button>
                     ))}
-                    <div className="qc-dropdown-divider"></div>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </div>
 
-        <div className="qc-messages-container">
-          {messages.length === 0 ? (
+          {/* Feature Toggles */}
+          <div className="qc-toggles">
+            {modelCapabilities.supportsDeepThink && (
+              <button 
+                className={`qc-toggle ${deepThinkEnabled ? 'active' : ''}`}
+                onClick={() => setDeepThinkEnabled(!deepThinkEnabled)}
+                title="Deep Think Mode"
+              >
+                <Brain size={16} />
+                <span>Deep Think</span>
+              </button>
+            )}
+            {modelCapabilities.supportsWebSearch && (
+              <button 
+                className={`qc-toggle ${webSearchEnabled ? 'active' : ''}`}
+                onClick={() => setWebSearchEnabled(!webSearchEnabled)}
+                title="Web Search"
+              >
+                <Globe size={16} />
+                <span>Web Search</span>
+              </button>
+            )}
+            <button 
+              className={`qc-toggle ${showThinking ? 'active' : ''}`}
+              onClick={() => setShowThinking(!showThinking)}
+              title="Show Thinking Process"
+            >
+              {showThinking ? <Eye size={16} /> : <EyeOff size={16} />}
+              <span>Thinking</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Messages */}
+        <div className="qc-messages">
+          {messages.length === 0 && !isLoading ? (
             <div className="qc-welcome">
-              <div className="qc-welcome-icon">🤖</div>
+              <div className="qc-welcome-icon">
+                <Sparkles size={48} />
+              </div>
               <h2>How can I help you today?</h2>
+              <p>Ask me anything, upload files, or start a conversation.</p>
+              <div className="qc-suggestions">
+                {[
+                  'Explain quantum computing',
+                  'Write a Python function',
+                  'Analyze this image',
+                  'Help me debug code'
+                ].map(s => (
+                  <button key={s} onClick={() => setInputText(s)} className="qc-suggestion">
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
-            messages.map((message) => (
-              <div key={message.id} className={`qc-message-wrapper ${message.role}`}>
+            messages.map((msg, idx) => (
+              <div key={msg.id} className={`qc-message ${msg.role} ${msg.isError ? 'error' : ''}`}>
                 <div 
-                  className={`qc-message-avatar ${message.role === 'assistant' ? 'clickable' : ''}`}
-                  onClick={() => message.role === 'assistant' && setShowThinking(!showThinking)}
-                  title={message.role === 'assistant' ? "Click to toggle thinking process" : ""}
-                  style={message.role === 'assistant' ? { cursor: 'pointer' } : {}}
+                  className={`qc-message-avatar ${msg.role === 'assistant' && msg.thinking ? 'has-thinking' : ''}`}
+                  onClick={() => msg.role === 'assistant' && msg.thinking && setShowThinking(!showThinking)}
+                  title={msg.role === 'assistant' && msg.thinking ? 'Click to toggle thinking process' : undefined}
                 >
-                  {message.role === 'user' ? '👤' : '🤖'}
+                  {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
+                  {msg.role === 'assistant' && msg.thinking && (
+                    <span className="thinking-indicator">{showThinking ? '▼' : '▶'}</span>
+                  )}
                 </div>
-                <div className="qc-message-content">
-                  {/* Show typing indicator if content is empty and it's the last message from assistant */}
-                  {message.role === 'assistant' && !message.content && !message.thinking && isLoading && messages[messages.length - 1].id === message.id ? (
-                    <div className="qc-typing-indicator">
-                      <span></span><span></span><span></span>
+                <div className="qc-message-body">
+                  {/* Thinking Block */}
+                  {msg.thinking && showThinking && (
+                    <div className="qc-thinking">
+                      <div className="qc-thinking-header">
+                        <Brain size={14} />
+                        <span>Thinking Process</span>
+                      </div>
+                      <div className="qc-thinking-content">{msg.thinking}</div>
                     </div>
-                  ) : (
-                    <>
-                      {message.thinking && (
-                        <div className="qc-thinking-block">
-                          <div 
-                            className="qc-thinking-header" 
-                            onClick={() => setShowThinking(!showThinking)}
-                          >
-                            <span>🧠 Thinking Process</span>
-                            <span>{showThinking ? '▼' : '▶'}</span>
-                          </div>
-                          {showThinking && (
-                            <div className="qc-thinking-content">
-                              {message.thinking}
+                  )}
+                  
+                  {/* Attachments */}
+                  {msg.attachments && msg.attachments.length > 0 && (
+                    <div className="qc-message-attachments">
+                      {msg.attachments.map((att, i) => (
+                        <div key={i} className="qc-msg-attachment">
+                          {att.type === 'image' ? (
+                            <img 
+                              src={`data:${att.mimeType};base64,${att.data}`} 
+                              alt={att.filename || 'Image'} 
+                            />
+                          ) : (
+                            <div className="qc-file-preview">
+                              <FileText size={20} />
+                              <span>{att.filename}</span>
                             </div>
                           )}
                         </div>
-                      )}
-                      <div className="qc-message-bubble">
-                        <ReactMarkdown 
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            code({node, inline, className, children, ...props}: any) {
-                              const match = /language-(\w+)/.exec(className || '')
-                              return !inline && match ? (
-                                <div className="code-block">
-                                  <div className="code-header">{match[1]}</div>
-                                  <pre className={className} {...props}>
-                                    <code>{children}</code>
-                                  </pre>
-                                </div>
-                              ) : (
-                                <code className={className} {...props}>
-                                  {children}
-                                </code>
-                              )
-                            }
-                          }}
-                        >
-                          {message.content}
-                        </ReactMarkdown>
-                      </div>
-                    </>
+                      ))}
+                    </div>
                   )}
+
+                  {/* Content */}
+                  <div className="qc-message-content">
+                    {msg.role === 'assistant' && !msg.content && idx === messages.length - 1 && isLoading ? (
+                      streamingContent ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {streamingContent}
+                        </ReactMarkdown>
+                      ) : (
+                        <div className="qc-typing">
+                          <span></span><span></span><span></span>
+                        </div>
+                      )
+                    ) : (
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({ inline, className, children, ...props }: any) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            return !inline && match ? (
+                              <div className="qc-code-block">
+                                <div className="qc-code-header">
+                                  <span>{match[1]}</span>
+                                  <button onClick={() => copyMessage(String(children), `code-${msg.id}`)}>
+                                    {copiedMessageId === `code-${msg.id}` ? <Check size={12} /> : <Copy size={12} />}
+                                  </button>
+                                </div>
+                                <pre {...props}>
+                                  <code className={className}>{children}</code>
+                                </pre>
+                              </div>
+                            ) : (
+                              <code className={className} {...props}>{children}</code>
+                            );
+                          }
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+
+                  {/* Message Meta */}
                   <div className="qc-message-meta">
-                    {message.model && <span className="qc-model-badge">{message.model}</span>}
-                    <span className="qc-time">{new Date(message.timestamp).toLocaleTimeString()}</span>
+                    {msg.model && <span className="qc-msg-model">{msg.model}</span>}
+                    <span className="qc-msg-time">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                    {msg.role === 'assistant' && msg.content && (
+                      <div className="qc-msg-actions">
+                        <button onClick={() => copyMessage(msg.content, msg.id)} title="Copy">
+                          {copiedMessageId === msg.id ? <Check size={12} /> : <Copy size={12} />}
+                        </button>
+                        {idx === messages.length - 1 && (
+                          <button onClick={regenerateMessage} title="Regenerate" disabled={isLoading}>
+                            <RotateCcw size={12} />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -844,25 +1040,27 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="qc-input-container">
+        {/* Input Area */}
+        <div className="qc-input-area">
+          {/* Attachments Preview */}
           {attachments.length > 0 && (
-            <div className="qc-attachments-preview">
-              {attachments.map((att, index) => (
-                <div key={index} className="qc-attachment-item">
-                  <span className="qc-attachment-icon">
-                    {att.type === 'image' ? '🖼️' : '📄'}
-                  </span>
-                  <span className="qc-attachment-name">{att.filename || 'File'}</span>
-                  <button 
-                    className="qc-attachment-remove"
-                    onClick={() => removeAttachment(index)}
-                  >
-                    ×
+            <div className="qc-attachments">
+              {attachments.map((att, idx) => (
+                <div key={idx} className="qc-attachment">
+                  {att.type === 'image' ? (
+                    <img src={`data:${att.mimeType};base64,${att.data}`} alt="" />
+                  ) : (
+                    <FileText size={16} />
+                  )}
+                  <span>{att.filename}</span>
+                  <button onClick={() => removeAttachment(idx)}>
+                    <X size={12} />
                   </button>
                 </div>
               ))}
             </div>
           )}
+
           <div className="qc-input-wrapper">
             <input
               type="file"
@@ -870,39 +1068,43 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
               onChange={handleFileSelect}
               style={{ display: 'none' }}
               multiple
+              accept="image/*,.pdf,.txt,.md,.json,.csv"
             />
-            <button
-              className="qc-attach-btn"
+            
+            <button 
+              className="qc-input-btn"
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
-              title="Attach files"
+              title="Attach file"
             >
-              📎
+              <Paperclip size={18} />
             </button>
+
             <textarea
+              ref={textareaRef}
               className="qc-input"
-              placeholder="Message Ask OCR..."
+              placeholder="Message Bluesky AI..."
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={e => setInputText(e.target.value)}
               onKeyDown={handleKeyPress}
               rows={1}
-              style={{ height: 'auto', minHeight: '44px', maxHeight: '200px' }}
+              disabled={isLoading}
             />
+
             <button
               className="qc-send-btn"
               onClick={() => handleSendMessage()}
               disabled={(!inputText.trim() && attachments.length === 0) || isLoading}
             >
-              ➤
+              {isLoading ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
             </button>
           </div>
-          <div className="qc-footer-text">
+
+          <div className="qc-disclaimer">
             AI can make mistakes. Please verify important information.
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
-
-// End of QuickChat component

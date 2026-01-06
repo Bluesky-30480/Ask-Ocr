@@ -23,6 +23,7 @@ export interface AIAttachment {
   data: string; // base64 or URL
   mimeType: string;
   filename?: string;
+  metadata?: Record<string, any>;
 }
 
 // AI Request

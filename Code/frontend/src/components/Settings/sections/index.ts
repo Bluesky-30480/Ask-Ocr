@@ -9,3 +9,5 @@ export { AppearanceSettings } from './AppearanceSettings';
 export { PopupCustomizationSettings } from './PopupCustomizationSettings';
 export { PrivacySettings } from './PrivacySettings';
 export { AdvancedSettings } from './AdvancedSettings';
+export { MediaHelperSettings } from './MediaHelperSettings';
+export { OcrSettings } from './OcrSettings';

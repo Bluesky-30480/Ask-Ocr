@@ -204,20 +204,35 @@ export const PopupCustomizationSettings: React.FC = () => {
           Select which popup window type to customize
         </p>
 
-        <div className="window-type-selector">
+        <div className="window-type-selector" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
           {[
-            { value: 'ocr', label: '📄 OCR Result', icon: '📄' },
-            { value: 'word', label: '📖 Word Popup', icon: '📖' },
-            { value: 'file_explorer', label: '📁 File Explorer', icon: '📁' },
-            { value: 'universal', label: '🤖 Universal AI', icon: '🤖' },
+            { value: 'ocr', label: 'OCR Result', icon: '📄' },
+            { value: 'word', label: 'Word Popup', icon: '📖' },
+            { value: 'file_explorer', label: 'File Explorer', icon: '📁' },
+            { value: 'universal', label: 'Universal AI', icon: '🤖' },
           ].map((type) => (
             <button
               key={type.value}
               className={`window-type-button ${selectedWindowType === type.value ? 'active' : ''}`}
               onClick={() => setSelectedWindowType(type.value as any)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '16px',
+                gap: '8px',
+                background: selectedWindowType === type.value ? 'var(--color-accent-primary)' : 'var(--color-surface-primary)',
+                color: selectedWindowType === type.value ? 'white' : 'var(--color-text-primary)',
+                border: '1px solid var(--color-border-primary)',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: selectedWindowType === type.value ? '0 4px 12px rgba(var(--color-accent-primary-rgb), 0.3)' : 'none',
+              }}
             >
-              <span className="window-type-icon">{type.icon}</span>
-              <span>{type.label}</span>
+              <span className="window-type-icon" style={{ fontSize: '24px' }}>{type.icon}</span>
+              <span style={{ fontWeight: 600, fontSize: '14px' }}>{type.label}</span>
             </button>
           ))}
         </div>

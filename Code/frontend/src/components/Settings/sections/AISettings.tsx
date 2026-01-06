@@ -1,25 +1,48 @@
 /**
- * AI & Models Settings Section
+ * AI & Models Settings Section - Recoded with working buttons
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { universalAI } from '../../../services/ai/universal-ai.service';
 import { ollamaManager, type OllamaModel } from '../../../services/ai/ollama-manager.service';
 
 type AIProviderType = 'local' | 'openai' | 'gemini' | 'claude' | 'deepseek' | 'grok' | 'perplexity';
+
+interface ProviderConfig {
+  id: AIProviderType;
+  name: string;
+  icon: string;
+  keyPrefix: string;
+  link: string;
+  color: string;
+}
+
+const PROVIDERS: ProviderConfig[] = [
+  { id: 'local', name: 'Local (Ollama)', icon: '💻', keyPrefix: '', link: '', color: '#10b981' },
+  { id: 'openai', name: 'OpenAI', icon: '🤖', keyPrefix: 'sk-', link: 'https://platform.openai.com/api-keys', color: '#10a37f' },
+  { id: 'gemini', name: 'Google Gemini', icon: '✨', keyPrefix: 'AIza', link: 'https://aistudio.google.com/app/apikey', color: '#4285f4' },
+  { id: 'claude', name: 'Anthropic Claude', icon: '🧠', keyPrefix: 'sk-ant-', link: 'https://console.anthropic.com/settings/keys', color: '#d97757' },
+  { id: 'deepseek', name: 'DeepSeek', icon: '🔮', keyPrefix: 'sk-', link: 'https://platform.deepseek.com/api_keys', color: '#6366f1' },
+  { id: 'grok', name: 'xAI Grok', icon: '⚡', keyPrefix: 'xai-', link: 'https://console.x.ai/', color: '#1da1f2' },
+  { id: 'perplexity', name: 'Perplexity', icon: '🔍', keyPrefix: 'pplx-', link: 'https://www.perplexity.ai/settings/api', color: '#20b2aa' },
+];
 
 interface AISettingsProps {
   onOpenQuickChat?: () => void;
 }
 
 export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
-  const [openaiKey, setOpenaiKey] = useState('');
-  const [geminiKey, setGeminiKey] = useState('');
-  const [claudeKey, setClaudeKey] = useState('');
-  const [deepseekKey, setDeepseekKey] = useState('');
-  const [grokKey, setGrokKey] = useState('');
-  const [perplexityKey, setPerplexityKey] = useState('');
+  // API Keys state
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({
+    openai: '',
+    gemini: '',
+    claude: '',
+    deepseek: '',
+    grok: '',
+    perplexity: '',
+  });
   
+  // Other state
   const [defaultProvider, setDefaultProvider] = useState<AIProviderType>('local');
   const [defaultModel, setDefaultModel] = useState<string>('');
   const [installedModels, setInstalledModels] = useState<OllamaModel[]>([]);
@@ -29,19 +52,25 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
     isRunning: false,
   });
   const [isTesting, setIsTesting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
 
+  // Load settings on mount
   useEffect(() => {
     loadSettings();
     checkStatus();
   }, []);
 
   const loadSettings = () => {
-    setOpenaiKey(localStorage.getItem('openai_api_key') || '');
-    setGeminiKey(localStorage.getItem('gemini_api_key') || '');
-    setClaudeKey(localStorage.getItem('claude_api_key') || '');
-    setDeepseekKey(localStorage.getItem('deepseek_api_key') || '');
-    setGrokKey(localStorage.getItem('grok_api_key') || '');
-    setPerplexityKey(localStorage.getItem('perplexity_api_key') || '');
+    setApiKeys({
+      openai: localStorage.getItem('openai_api_key') || '',
+      gemini: localStorage.getItem('gemini_api_key') || '',
+      claude: localStorage.getItem('claude_api_key') || '',
+      deepseek: localStorage.getItem('deepseek_api_key') || '',
+      grok: localStorage.getItem('grok_api_key') || '',
+      perplexity: localStorage.getItem('perplexity_api_key') || '',
+    });
     
     const savedProvider = (localStorage.getItem('default_ai_provider') as AIProviderType) || 'local';
     setDefaultProvider(savedProvider);
@@ -64,7 +93,6 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
       });
       setInstalledModels(ollamaInfo.models);
 
-      // If no default model is set and we have models, set the first one
       if (!localStorage.getItem('default_ai_model') && ollamaInfo.models.length > 0) {
         const firstModel = ollamaInfo.models[0].name;
         setDefaultModel(firstModel);
@@ -75,37 +103,45 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
     }
   };
 
-  const handleSaveKeys = () => {
-    if (openaiKey.trim()) localStorage.setItem('openai_api_key', openaiKey.trim());
-    else localStorage.removeItem('openai_api_key');
-
-    if (geminiKey.trim()) localStorage.setItem('gemini_api_key', geminiKey.trim());
-    else localStorage.removeItem('gemini_api_key');
-
-    if (claudeKey.trim()) localStorage.setItem('claude_api_key', claudeKey.trim());
-    else localStorage.removeItem('claude_api_key');
-
-    if (deepseekKey.trim()) localStorage.setItem('deepseek_api_key', deepseekKey.trim());
-    else localStorage.removeItem('deepseek_api_key');
-
-    if (grokKey.trim()) localStorage.setItem('grok_api_key', grokKey.trim());
-    else localStorage.removeItem('grok_api_key');
-
-    if (perplexityKey.trim()) localStorage.setItem('perplexity_api_key', perplexityKey.trim());
-    else localStorage.removeItem('perplexity_api_key');
-
-    universalAI.initialize({
-      openaiApiKey: openaiKey.trim(),
-      geminiApiKey: geminiKey.trim(),
-      claudeApiKey: claudeKey.trim(),
-      deepseekApiKey: deepseekKey.trim(),
-      grokApiKey: grokKey.trim(),
-      perplexityApiKey: perplexityKey.trim(),
-    });
-
-    alert('API keys saved successfully');
-    checkStatus();
+  const handleApiKeyChange = (provider: string, value: string) => {
+    setApiKeys(prev => ({ ...prev, [provider]: value }));
   };
+
+  const handleSaveAllKeys = useCallback(async () => {
+    setIsSaving(true);
+    setSaveMessage(null);
+
+    try {
+      // Save all keys to localStorage
+      Object.entries(apiKeys).forEach(([provider, key]) => {
+        if (key.trim()) {
+          localStorage.setItem(`${provider}_api_key`, key.trim());
+        } else {
+          localStorage.removeItem(`${provider}_api_key`);
+        }
+      });
+
+      // Re-initialize AI service
+      universalAI.initialize({
+        openaiApiKey: apiKeys.openai.trim(),
+        geminiApiKey: apiKeys.gemini.trim(),
+        claudeApiKey: apiKeys.claude.trim(),
+        deepseekApiKey: apiKeys.deepseek.trim(),
+        grokApiKey: apiKeys.grok.trim(),
+        perplexityApiKey: apiKeys.perplexity.trim(),
+      });
+
+      setSaveMessage({ type: 'success', text: '✅ All API keys saved successfully!' });
+      await checkStatus();
+      
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error('Failed to save keys:', error);
+      setSaveMessage({ type: 'error', text: '❌ Failed to save API keys' });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [apiKeys]);
 
   const handleDefaultModelChange = (value: string) => {
     setDefaultModel(value);
@@ -124,12 +160,12 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
       setProviderStatus(results);
       
       const summary = Object.entries(results)
-        .map(([provider, ok]) => `${provider}: ${ok ? '✅ Connected' : '❌ Failed'}`)
+        .map(([provider, ok]) => `${provider}: ${ok ? '✅' : '❌'}`)
         .join('\n');
       
       alert(`Connection Test Results:\n\n${summary}`);
     } catch (error) {
-      alert('Connection test failed');
+      alert('Connection test failed: ' + error);
     } finally {
       setIsTesting(false);
     }
@@ -138,56 +174,41 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
   const handleInstallOllama = async () => {
     try {
       await ollamaManager.oneClickInstall();
+      await checkStatus();
     } catch (error) {
       console.error('Failed to install Ollama:', error);
+      alert('Failed to install Ollama: ' + error);
     }
   };
 
-  const renderProviderInput = (
-    label: string,
-    value: string,
-    setValue: (val: string) => void,
-    placeholder: string,
-    link: string,
-    providerKey: string
-  ) => (
-    <div className="settings-group">
-      <h3 className="settings-group-title">{label} Configuration</h3>
-      <div className="settings-item">
-        <div className="settings-item-label">
-          <div className="settings-item-title">API Key</div>
-          <div className="settings-item-description">
-            Get your API key from{' '}
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--accent-color)' }}
-            >
-              {new URL(link).hostname}
-            </a>
-          </div>
-        </div>
-      </div>
-      <div className="settings-item">
-        <div className="settings-item-label">
-          <input
-            type="password"
-            className="input-control"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={placeholder}
-            style={{ fontFamily: 'monospace' }}
-          />
-        </div>
-        <div className="settings-item-control">
-          <div className="status-indicator">
-            {providerStatus[providerKey] ? '✅ Connected' : value ? '⚠️ Not Verified' : '⚪ Not Configured'}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const handleStartOllama = async () => {
+    try {
+      await ollamaManager.startOllama();
+      await checkStatus();
+    } catch (error) {
+      console.error('Failed to start Ollama:', error);
+    }
+  };
+
+  const getStatusIcon = (provider: string): string => {
+    if (provider === 'local') {
+      return ollamaStatus.isRunning ? '🟢' : ollamaStatus.isInstalled ? '🟡' : '🔴';
+    }
+    const key = apiKeys[provider as keyof typeof apiKeys];
+    if (!key) return '⚪';
+    return providerStatus[provider] ? '🟢' : '🟡';
+  };
+
+  const getStatusText = (provider: string): string => {
+    if (provider === 'local') {
+      if (ollamaStatus.isRunning) return 'Running';
+      if (ollamaStatus.isInstalled) return 'Stopped';
+      return 'Not installed';
+    }
+    const key = apiKeys[provider as keyof typeof apiKeys];
+    if (!key) return 'Not configured';
+    return providerStatus[provider] ? 'Connected' : 'Not verified';
+  };
 
   return (
     <div className="settings-section">
@@ -198,9 +219,9 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
         </p>
       </div>
 
-      {/* Provider Status & Global Controls */}
+      {/* Global Settings */}
       <div className="settings-group">
-        <h3 className="settings-group-title">Global Settings</h3>
+        <h3 className="settings-group-title">⚙️ Global Settings</h3>
         
         <div className="settings-item">
           <div className="settings-item-label">
@@ -215,93 +236,87 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
               value={defaultProvider}
               onChange={(e) => handleDefaultProviderChange(e.target.value as AIProviderType)}
             >
-              <option value="local">Local (Ollama) - Free</option>
-              <option value="openai">OpenAI</option>
-              <option value="gemini">Google Gemini</option>
-              <option value="claude">Anthropic Claude</option>
-              <option value="deepseek">DeepSeek</option>
-              <option value="grok">xAI Grok</option>
-              <option value="perplexity">Perplexity</option>
+              {PROVIDERS.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.icon} {p.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="settings-item">
           <div className="settings-item-label">
-            <div className="settings-item-title">Quick Chat</div>
+            <div className="settings-item-title">Quick Actions</div>
             <div className="settings-item-description">
-              Open the full chat interface to test models
+              Test connections or open Quick Chat
             </div>
           </div>
-          <div className="settings-item-control">
+          <div className="settings-item-control" style={{ display: 'flex', gap: '8px' }}>
             <button 
+              type="button"
               className="button-control secondary"
               onClick={onOpenQuickChat}
             >
-              💬 Open Quick Chat
+              💬 Quick Chat
             </button>
-          </div>
-        </div>
-
-        <div className="settings-item">
-          <div className="settings-item-label">
-            <div className="settings-item-title">Connection Status</div>
-            <div className="settings-item-description">
-              Test connections to all configured providers
-            </div>
-          </div>
-          <div className="settings-item-control">
             <button
+              type="button"
               className="button-control secondary"
               onClick={handleTestConnections}
               disabled={isTesting}
             >
-              {isTesting ? '⏳ Testing...' : '🔍 Test Connections'}
+              {isTesting ? '⏳ Testing...' : '🔍 Test All'}
             </button>
           </div>
         </div>
-        
-        <div className="settings-item">
-           <div className="settings-item-label"></div>
-           <div className="settings-item-control">
-             <button className="button-control" onClick={handleSaveKeys}>
-               💾 Save All Keys
-             </button>
-           </div>
-        </div>
       </div>
 
-      {/* Local Provider */}
+      {/* Local Provider (Ollama) */}
       <div className="settings-group">
-        <h3 className="settings-group-title">Local AI (Ollama)</h3>
-        <div className="settings-item">
-          <div className="settings-item-label">
-            <div className="settings-item-title">
-              {providerStatus.local ? '🟢' : '🔴'} Status
-            </div>
-            <div className="settings-item-description">
-              {ollamaStatus.isRunning
-                ? 'Running and ready'
-                : ollamaStatus.isInstalled
-                ? 'Installed but not running'
-                : 'Not installed'}
-            </div>
+        <h3 className="settings-group-title">💻 Local AI (Ollama)</h3>
+        
+        <div className="provider-status-card">
+          <div className="status-row">
+            <span className="status-indicator">{getStatusIcon('local')}</span>
+            <span className="status-label">{getStatusText('local')}</span>
           </div>
-          {!ollamaStatus.isInstalled && (
-            <div className="settings-item-control">
-              <button className="button-control" onClick={handleInstallOllama}>
-                Install Ollama
+          
+          <div className="provider-actions">
+            {!ollamaStatus.isInstalled ? (
+              <button 
+                type="button" 
+                className="button-control primary"
+                onClick={handleInstallOllama}
+              >
+                📥 Install Ollama
               </button>
-            </div>
-          )}
+            ) : !ollamaStatus.isRunning ? (
+              <button 
+                type="button" 
+                className="button-control primary"
+                onClick={handleStartOllama}
+              >
+                ▶️ Start Ollama
+              </button>
+            ) : null}
+            
+            <button 
+              type="button" 
+              className="button-control secondary"
+              onClick={checkStatus}
+            >
+              🔄 Refresh
+            </button>
+          </div>
         </div>
 
         {ollamaStatus.isRunning && installedModels.length > 0 && (
-          <div className="settings-item">
+          <div className="settings-item" style={{ marginTop: '12px' }}>
             <div className="settings-item-label">
               <div className="settings-item-title">Default Model</div>
               <div className="settings-item-description">
-                Select the model to use for AI assistance
+                {installedModels.length} model(s) available
               </div>
             </div>
             <div className="settings-item-control">
@@ -312,7 +327,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
               >
                 {installedModels.map((model) => (
                   <option key={model.name} value={model.name}>
-                    {model.name} ({Math.round(model.size / 1024 / 1024 / 1024 * 100) / 100} GB)
+                    {model.name} ({(model.size / 1024 / 1024 / 1024).toFixed(1)} GB)
                   </option>
                 ))}
               </select>
@@ -322,59 +337,274 @@ export const AISettings: React.FC<AISettingsProps> = ({ onOpenQuickChat }) => {
       </div>
 
       {/* Cloud Providers */}
-      {renderProviderInput(
-        'OpenAI',
-        openaiKey,
-        setOpenaiKey,
-        'sk-...',
-        'https://platform.openai.com/api-keys',
-        'openai'
-      )}
+      <div className="settings-group">
+        <h3 className="settings-group-title">☁️ Cloud Providers</h3>
+        
+        <div className="providers-list">
+          {PROVIDERS.filter(p => p.id !== 'local').map((provider) => (
+            <div 
+              key={provider.id} 
+              className={`provider-card ${expandedProvider === provider.id ? 'expanded' : ''}`}
+            >
+              <button
+                type="button"
+                className="provider-header"
+                onClick={() => setExpandedProvider(
+                  expandedProvider === provider.id ? null : provider.id
+                )}
+              >
+                <div className="provider-info">
+                  <span className="provider-icon">{provider.icon}</span>
+                  <span className="provider-name">{provider.name}</span>
+                </div>
+                <div className="provider-status">
+                  <span className="status-badge">{getStatusIcon(provider.id)} {getStatusText(provider.id)}</span>
+                  <span className="expand-arrow">{expandedProvider === provider.id ? '▲' : '▼'}</span>
+                </div>
+              </button>
+              
+              {expandedProvider === provider.id && (
+                <div className="provider-content">
+                  <div className="api-key-row">
+                    <input
+                      type="password"
+                      className="input-control"
+                      value={apiKeys[provider.id as keyof typeof apiKeys] || ''}
+                      onChange={(e) => handleApiKeyChange(provider.id, e.target.value)}
+                      placeholder={`${provider.keyPrefix}...`}
+                    />
+                  </div>
+                  <div className="provider-link">
+                    <a 
+                      href={provider.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      🔗 Get API Key
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
-      {renderProviderInput(
-        'Google Gemini',
-        geminiKey,
-        setGeminiKey,
-        'AIza...',
-        'https://aistudio.google.com/app/apikey',
-        'gemini'
-      )}
+      {/* Save Button */}
+      <div className="settings-group">
+        <div className="settings-actions">
+          <button
+            type="button"
+            className="button-control primary"
+            onClick={handleSaveAllKeys}
+            disabled={isSaving}
+          >
+            {isSaving ? '⏳ Saving...' : '💾 Save All API Keys'}
+          </button>
+          
+          {saveMessage && (
+            <span className={`save-message ${saveMessage.type}`}>
+              {saveMessage.text}
+            </span>
+          )}
+        </div>
+      </div>
 
-      {renderProviderInput(
-        'Anthropic Claude',
-        claudeKey,
-        setClaudeKey,
-        'sk-ant-...',
-        'https://console.anthropic.com/settings/keys',
-        'claude'
-      )}
-
-      {renderProviderInput(
-        'DeepSeek',
-        deepseekKey,
-        setDeepseekKey,
-        'sk-...',
-        'https://platform.deepseek.com/api_keys',
-        'deepseek'
-      )}
-
-      {renderProviderInput(
-        'xAI Grok',
-        grokKey,
-        setGrokKey,
-        'xai-...',
-        'https://console.x.ai/',
-        'grok'
-      )}
-
-      {renderProviderInput(
-        'Perplexity',
-        perplexityKey,
-        setPerplexityKey,
-        'pplx-...',
-        'https://www.perplexity.ai/settings/api',
-        'perplexity'
-      )}
+      <style>{`
+        .provider-status-card {
+          background: var(--color-surface-primary);
+          border: 1px solid var(--color-border-primary);
+          border-radius: 12px;
+          padding: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .status-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .status-indicator {
+          font-size: 16px;
+        }
+        
+        .status-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--color-text-primary);
+        }
+        
+        .provider-actions {
+          display: flex;
+          gap: 8px;
+        }
+        
+        .providers-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        
+        .provider-card {
+          background: var(--color-surface-primary);
+          border: 1px solid var(--color-border-primary);
+          border-radius: 12px;
+          overflow: hidden;
+          transition: all 0.2s ease;
+        }
+        
+        .provider-card.expanded {
+          border-color: var(--color-primary);
+        }
+        
+        .provider-header {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 14px 16px;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+        
+        .provider-header:hover {
+          background: var(--color-surface-secondary);
+        }
+        
+        .provider-info {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .provider-icon {
+          font-size: 18px;
+        }
+        
+        .provider-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--color-text-primary);
+        }
+        
+        .provider-status {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .status-badge {
+          font-size: 12px;
+          color: var(--color-text-secondary);
+        }
+        
+        .expand-arrow {
+          font-size: 10px;
+          color: var(--color-text-secondary);
+        }
+        
+        .provider-content {
+          padding: 0 16px 16px;
+          border-top: 1px solid var(--color-border-primary);
+          animation: slideDown 0.2s ease;
+        }
+        
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .api-key-row {
+          margin-top: 12px;
+        }
+        
+        .provider-link {
+          margin-top: 8px;
+        }
+        
+        .provider-link a {
+          font-size: 13px;
+          color: var(--color-primary);
+          text-decoration: none;
+        }
+        
+        .provider-link a:hover {
+          text-decoration: underline;
+        }
+        
+        .settings-actions {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        
+        .save-message {
+          font-size: 14px;
+          font-weight: 500;
+        }
+        
+        .save-message.success {
+          color: #34c759;
+        }
+        
+        .save-message.error {
+          color: #ff3b30;
+        }
+        
+        .button-control.primary {
+          background: var(--color-primary);
+          color: white;
+          border: none;
+          padding: 10px 24px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .button-control.primary:hover {
+          opacity: 0.9;
+        }
+        
+        .button-control.primary:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        .button-control.secondary {
+          background: var(--color-surface-primary);
+          color: var(--color-text-primary);
+          border: 1px solid var(--color-border-primary);
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .button-control.secondary:hover {
+          background: var(--color-surface-secondary);
+          border-color: var(--color-primary);
+        }
+        
+        .button-control.secondary:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      `}</style>
     </div>
   );
 };

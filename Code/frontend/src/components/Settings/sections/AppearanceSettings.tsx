@@ -3,12 +3,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 type Theme = 'light' | 'dark' | 'auto';
 type Density = 'compact' | 'regular' | 'spacious';
 
 export const AppearanceSettings: React.FC = () => {
-  const [theme, setTheme] = useState<Theme>('auto');
+  const { theme, setTheme } = useTheme();
   const [accentColor, setAccentColor] = useState('#007aff');
   const [fontSize, setFontSize] = useState(14);
   const [density, setDensity] = useState<Density>('regular');
@@ -17,14 +18,12 @@ export const AppearanceSettings: React.FC = () => {
 
   useEffect(() => {
     // Load saved appearance settings
-    const savedTheme = localStorage.getItem('appearance_theme') as Theme;
     const savedAccentColor = localStorage.getItem('appearance_accent_color');
     const savedFontSize = localStorage.getItem('appearance_font_size');
     const savedDensity = localStorage.getItem('appearance_density') as Density;
     const savedAnimations = localStorage.getItem('appearance_animations');
     const savedTransparency = localStorage.getItem('appearance_transparency');
 
-    if (savedTheme) setTheme(savedTheme);
     if (savedAccentColor) setAccentColor(savedAccentColor);
     if (savedFontSize) setFontSize(parseInt(savedFontSize));
     if (savedDensity) setDensity(savedDensity);
@@ -34,19 +33,6 @@ export const AppearanceSettings: React.FC = () => {
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    localStorage.setItem('appearance_theme', newTheme);
-    applyTheme(newTheme);
-  };
-
-  const applyTheme = (selectedTheme: Theme) => {
-    let themeToApply = selectedTheme;
-    
-    if (selectedTheme === 'auto') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      themeToApply = prefersDark ? 'dark' : 'light';
-    }
-
-    document.documentElement.setAttribute('data-theme', themeToApply);
   };
 
   const handleAccentColorChange = (color: string) => {

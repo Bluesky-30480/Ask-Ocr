@@ -39,7 +39,7 @@ pub fn create_system_tray() -> SystemTray {
     let about = CustomMenuItem::new("about".to_string(), "About");
     
     let separator4 = SystemTrayMenuItem::Separator;
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit Ask OCR");
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit Bluesky");
     
     // Build the menu
     let tray_menu = SystemTrayMenu::new()

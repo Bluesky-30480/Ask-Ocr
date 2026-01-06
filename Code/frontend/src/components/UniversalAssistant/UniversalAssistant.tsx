@@ -16,13 +16,20 @@ import {
   type RoutingDecision,
 } from '../../services/context/context-aware-routing.service';
 import { universalAI } from '../../services/ai/universal-ai.service';
-import { AIConfig } from '../AIConfig/AIConfig';
 import './UniversalAssistant.css';
+
+import { screenshotManager } from '../../services/shortcuts/screenshot-manager.service';
+import type { AIAttachment } from '@shared/types/ai.types';
+import { FileSearch } from './FileSearch';
+import { fileSearchService, type SearchResult } from '../../services/file-search.service';
+
+import { FileOperationsPreview, type FileOperation } from './FileOperationsPreview';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  attachments?: AIAttachment[];
 }
 
 const APP_TYPE_ICONS: Record<ApplicationType, string> = {
@@ -70,7 +77,12 @@ export const UniversalAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  // const [showSettings, setShowSettings] = useState(false);
+  const [attachments, setAttachments] = useState<AIAttachment[]>([]);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [showFileSearch, setShowFileSearch] = useState(false);
+  const [pendingOperations, setPendingOperations] = useState<FileOperation[]>([]);
+  const [isExecutingOps, setIsExecutingOps] = useState(false);
 
   const dragRef = useRef<{ startX: number; startY: number } | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -80,12 +92,22 @@ export const UniversalAssistant: React.FC = () => {
   useEffect(() => {
     const initializeAI = async () => {
       try {
-        // Try to get API key from local storage or settings
+        // Load all API keys from local storage
         const openaiKey = localStorage.getItem('openai_api_key');
+        const geminiKey = localStorage.getItem('gemini_api_key');
+        const anthropicKey = localStorage.getItem('anthropic_api_key');
+        const deepseekKey = localStorage.getItem('deepseek_api_key');
+        const grokKey = localStorage.getItem('grok_api_key');
+        const perplexityKey = localStorage.getItem('perplexity_api_key');
         
-        if (openaiKey) {
-          await universalAI.initialize({ openaiApiKey: openaiKey });
-        }
+        await universalAI.initialize({ 
+          openaiApiKey: openaiKey || undefined,
+          geminiApiKey: geminiKey || undefined,
+          claudeApiKey: anthropicKey || undefined,
+          deepseekApiKey: deepseekKey || undefined,
+          grokApiKey: grokKey || undefined,
+          perplexityApiKey: perplexityKey || undefined
+        });
         
         // Test connections
         const status = await universalAI.getProviderStatus();
@@ -164,6 +186,13 @@ export const UniversalAssistant: React.FC = () => {
       appWindow.setAlwaysOnTop(true);
       appWindow.setFocus();
       inputRef.current?.focus();
+
+      // Refresh context with text capture when opening
+      activeWindowContext.detectContext({ captureSelectedText: true }).then((ctx) => {
+        setContext(ctx);
+        const decision = contextAwareRouting.route(ctx);
+        setRouting(decision);
+      });
     } else {
       appWindow.setAlwaysOnTop(false);
     }
@@ -205,30 +234,156 @@ export const UniversalAssistant: React.FC = () => {
     }
   }, [isDragging]);
 
+  const handleCaptureWindow = async () => {
+    setIsCapturing(true);
+    // Hide assistant window temporarily to capture the underlying window
+    setIsVisible(false);
+    
+    // Wait for window to hide
+    setTimeout(async () => {
+      try {
+        const result = await screenshotManager.captureWindow();
+        if (result.success && result.imageData) {
+          const newAttachment: AIAttachment = {
+            type: 'image',
+            data: result.imageData,
+            mimeType: 'image/png',
+            filename: `screenshot_${Date.now()}.png`
+          };
+          setAttachments(prev => [...prev, newAttachment]);
+        }
+      } catch (error) {
+        console.error('Failed to capture window:', error);
+      } finally {
+        setIsVisible(true);
+        setIsCapturing(false);
+      }
+    }, 300);
+  };
+
+  const handleCaptureRegion = async () => {
+    setIsCapturing(true);
+    setIsVisible(false);
+    
+    try {
+      // Use native region capture if available, or custom overlay
+      // For now, let's use the custom overlay flow
+      await screenshotManager.showOverlay(async (region) => {
+        const result = await screenshotManager.captureRegion(region);
+        if (result.success && result.imageData) {
+          const newAttachment: AIAttachment = {
+            type: 'image',
+            data: result.imageData,
+            mimeType: 'image/png',
+            filename: `region_${Date.now()}.png`
+          };
+          setAttachments(prev => [...prev, newAttachment]);
+        }
+        setIsVisible(true);
+        setIsCapturing(false);
+        await screenshotManager.hideOverlay();
+      });
+    } catch (error) {
+      console.error('Failed to capture region:', error);
+      setIsVisible(true);
+      setIsCapturing(false);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFileSelect = async (files: SearchResult[]) => {
+    setShowFileSearch(false);
+    setIsLoading(true);
+
+    try {
+      const newAttachments: AIAttachment[] = [];
+      
+      for (const file of files) {
+        if (file.is_dir) continue;
+        
+        try {
+          const content = await fileSearchService.readFileContent(file.path);
+          const metadata = await fileSearchService.getFileMetadata(file.path);
+          
+          newAttachments.push({
+            type: 'document',
+            data: content,
+            mimeType: metadata.mime_type || 'text/plain',
+            filename: file.name,
+            metadata: { ...metadata, path: file.path } as any
+          });
+        } catch (e) {
+          console.error(`Failed to read file ${file.name}:`, e);
+        }
+      }
+      
+      setAttachments(prev => [...prev, ...newAttachments]);
+    } catch (error) {
+      console.error('Failed to process files:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const executeFileOperations = async () => {
+    setIsExecutingOps(true);
+    try {
+      const results: string[] = [];
+      for (const op of pendingOperations) {
+        if (op.type === 'rename') {
+          try {
+            await invoke('rename_file', { path: op.path, newName: op.newName });
+            results.push(`✅ Renamed ${op.originalName} to ${op.newName}`);
+          } catch (e) {
+            results.push(`❌ Failed to rename ${op.originalName}: ${e}`);
+          }
+        }
+      }
+      
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `Operation completed:\n${results.join('\n')}`,
+        timestamp: Date.now()
+      }]);
+      
+      setPendingOperations([]);
+    } catch (error) {
+      console.error('Failed to execute operations:', error);
+    } finally {
+      setIsExecutingOps(false);
+    }
+  };
+
   // Handle query submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim() || !context) return;
+    if ((!query.trim() && attachments.length === 0) || !context) return;
 
     const userMessage: Message = {
       role: 'user',
       content: query,
       timestamp: Date.now(),
+      attachments: [...attachments]
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setQuery('');
+    setAttachments([]);
     setIsLoading(true);
 
     try {
       // Send to Universal AI service with context-aware routing
       const response = await universalAI.sendRequest({
-        query,
+        query: userMessage.content,
         context,
         conversationHistory: messages.map((m) => ({ 
           role: m.role, 
           content: m.content 
         })),
+        attachments: userMessage.attachments
       });
 
       const assistantMessage: Message = {
@@ -239,6 +394,38 @@ export const UniversalAssistant: React.FC = () => {
 
       setMessages((prev) => [...prev, assistantMessage]);
       
+      // Check for file operations in the response
+      const jsonMatch = response.content.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        try {
+          const data = JSON.parse(jsonMatch[1]);
+          if (data.operations && Array.isArray(data.operations)) {
+            const ops: FileOperation[] = [];
+            
+            for (const op of data.operations) {
+              if (op.type === 'rename' && op.originalName && op.newName) {
+                // Find the file in the attachments to get the full path
+                const attachment = userMessage.attachments?.find(a => a.filename === op.originalName);
+                if (attachment && attachment.metadata && attachment.metadata.path) {
+                  ops.push({
+                    type: 'rename',
+                    path: attachment.metadata.path,
+                    originalName: op.originalName,
+                    newName: op.newName
+                  });
+                }
+              }
+            }
+
+            if (ops.length > 0) {
+              setPendingOperations(ops);
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse JSON from AI response', e);
+        }
+      }
+
       // Update routing display with actual result
       if (response.routingReason) {
         console.log(`AI Response from ${response.provider}/${response.model}: ${response.routingReason}`);
@@ -292,7 +479,7 @@ Please check that your AI services are configured and running.`,
         <div className="header-actions">
           <button
             className="settings-btn"
-            onClick={() => setShowSettings(true)}
+            onClick={() => console.log('Settings clicked')}
             title="AI Settings"
           >
             ⚙️
@@ -351,7 +538,34 @@ Please check that your AI services are configured and running.`,
 
             {messages.map((msg, idx) => (
               <div key={idx} className={`message ${msg.role}`}>
-                <div className="message-content">{msg.content}</div>
+                <div className="message-content">
+                  {msg.attachments && msg.attachments.length > 0 && (
+                    <div className="message-attachments">
+                      {msg.attachments.map((att, i) => (
+                        <div key={i} className="attachment-preview">
+                          {att.type === 'image' && (
+                            <img src={att.data} alt="Attachment" />
+                          )}
+                          {att.type === 'document' && (
+                            <div className="document-preview">
+                              <span className="doc-icon">📄</span>
+                              <div className="doc-info">
+                                <span className="doc-name">{att.filename}</span>
+                                {att.metadata && (
+                                  <span className="doc-meta">
+                                    {att.metadata.line_count ? `${att.metadata.line_count} lines` : ''}
+                                    {att.metadata.width ? `${att.metadata.width}x${att.metadata.height}` : ''}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {msg.content}
+                </div>
                 <div className="message-time">
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </div>
@@ -373,6 +587,45 @@ Please check that your AI services are configured and running.`,
 
           {/* Input */}
           <form className="input-container" onSubmit={handleSubmit}>
+            {attachments.length > 0 && (
+              <div className="input-attachments">
+                {attachments.map((_, i) => (
+                  <div key={i} className="attachment-chip">
+                    <span>📷 Image</span>
+                    <button type="button" onClick={() => removeAttachment(i)}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="input-actions">
+              <button 
+                type="button" 
+                className="action-btn" 
+                onClick={handleCaptureWindow}
+                title="Capture Active Window"
+                disabled={isCapturing}
+              >
+                🔲
+              </button>
+              <button 
+                type="button" 
+                className="action-btn" 
+                onClick={handleCaptureRegion}
+                title="Capture Region"
+                disabled={isCapturing}
+              >
+                ✂️
+              </button>
+              <button 
+                type="button" 
+                className="action-btn" 
+                onClick={() => setShowFileSearch(true)}
+                title="Search Files"
+                disabled={isCapturing}
+              >
+                🔍
+              </button>
+            </div>
             <textarea
               ref={inputRef}
               value={query}
@@ -386,7 +639,7 @@ Please check that your AI services are configured and running.`,
                 }
               }}
             />
-            <button type="submit" disabled={!query.trim() || isLoading}>
+            <button type="submit" disabled={(!query.trim() && attachments.length === 0) || isLoading}>
               {isLoading ? '⏳' : '➤'}
             </button>
           </form>
@@ -403,9 +656,22 @@ Please check that your AI services are configured and running.`,
         </>
       )}
 
-      {/* AI Settings Modal */}
-      {showSettings && (
-        <AIConfig onClose={() => setShowSettings(false)} />
+      {/* File Search Overlay */}
+      {showFileSearch && (
+        <FileSearch 
+          onClose={() => setShowFileSearch(false)} 
+          onFileSelect={handleFileSelect} 
+        />
+      )}
+
+      {/* File Operations Preview */}
+      {pendingOperations.length > 0 && (
+        <FileOperationsPreview
+          operations={pendingOperations}
+          onConfirm={executeFileOperations}
+          onCancel={() => setPendingOperations([])}
+          isExecuting={isExecutingOps}
+        />
       )}
     </div>
   );

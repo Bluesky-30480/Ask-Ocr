@@ -1,5 +1,5 @@
 {
-  "name": "ask-ocr",
+  "name": "bluesky",
   "version": "0.1.0",
   "description": "Lightweight OCR Desktop Application",
   "type": "module",
@@ -10,5 +10,8 @@
     "tauri:dev": "cd src-tauri && cargo tauri dev",
     "tauri:build": "cd src-tauri && cargo tauri build",
     "setup": "npm install && cd frontend && npm install && cd ../src-tauri && cargo build"
+  },
+  "dependencies": {
+    "lucide-react": "^0.562.0"
   }
 }

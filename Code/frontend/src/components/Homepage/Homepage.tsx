@@ -1,488 +1,421 @@
 /**
  * Homepage Component
- * Main landing page with history, quick access, and statistics
+ * Beautiful non-scrollable dashboard with Quick Chat integration
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { databaseService } from '../../services/database.service';
 import type { OcrRecord } from '../../services/database.service';
+import { ollamaManager } from '../../services/ai/ollama-manager.service';
+import type { OllamaStatus } from '../../services/ai/ollama-manager.service';
+import { 
+  Home, Settings, Eye, MessageSquare, Camera, Cpu, 
+  CheckCircle, XCircle, AlertCircle, Send, Sparkles, Music, FolderOpen,
+  Play, ExternalLink, RefreshCw
+} from 'lucide-react';
 import './Homepage.css';
-
-interface ChatHistoryItem {
-  id: string;
-  timestamp: number;
-  title: string;
-  messages: number;
-  lastMessage: string;
-}
-
-interface AppChat {
-  appName: string;
-  appIcon: string;
-  appExecutable: string;
-  chats: ChatHistoryItem[];
-}
 
 interface HomepageProps {
   onOpenSettings?: () => void;
   onOpenQuickChat?: (initialText?: string) => void;
+  onOpenMusic?: () => void;
+  onOpenMediaHelper?: () => void;
   onNewOcr?: () => void;
+}
+
+interface ModelStatus {
+  name: string;
+  status: 'online' | 'offline' | 'checking';
+  provider: string;
 }
 
 export const Homepage: React.FC<HomepageProps> = ({ 
   onOpenSettings, 
   onOpenQuickChat,
+  onOpenMusic,
+  onOpenMediaHelper,
   onNewOcr
 }) => {
-  const [activeTab, setActiveTab] = useState<'ocr' | 'chats' | 'apps'>('ocr');
-  const [ocrHistory, setOcrHistory] = useState<OcrRecord[]>([]);
-  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
-  const [appChats, setAppChats] = useState<AppChat[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState({
     totalOcrs: 0,
     totalChats: 0,
-    totalApps: 0,
     todayOcrs: 0,
   });
+  const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
+  const [modelStatuses, setModelStatuses] = useState<ModelStatus[]>([]);
+  const [quickChatInput, setQuickChatInput] = useState('');
+  const [recentOcrs, setRecentOcrs] = useState<OcrRecord[]>([]);
+  const [isCheckingModels, setIsCheckingModels] = useState(true);
+  const [isStartingOllama, setIsStartingOllama] = useState(false);
+  const quickChatInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    loadHistory();
+    loadData();
+    checkModelStatus();
   }, []);
 
-  const loadHistory = async () => {
-    // Load OCR history from database
+  const loadData = async () => {
     try {
-      const records = await databaseService.getAllOcrRecords(50); // Limit to 50 recent
-      setOcrHistory(records);
+      const records = await databaseService.getAllOcrRecords(5);
+      setRecentOcrs(records);
       
-      // Update stats based on DB records
+      const allRecords = await databaseService.getAllOcrRecords(1000);
       const today = new Date().setHours(0, 0, 0, 0);
-      const todayOcrs = records.filter(item => new Date(item.timestamp).setHours(0, 0, 0, 0) === today).length;
+      const todayOcrs = allRecords.filter(item => 
+        new Date(item.timestamp).setHours(0, 0, 0, 0) === today
+      ).length;
       
       setStats(prev => ({
         ...prev,
-        totalOcrs: records.length,
+        totalOcrs: allRecords.length,
         todayOcrs
       }));
     } catch (error) {
-      console.error('Failed to load OCR history from DB:', error);
+      console.error('Failed to load data:', error);
     }
 
-    // Load chat history (still from localStorage for now)
+    // Load chat count
     const savedChatHistory = localStorage.getItem('chat_history');
     if (savedChatHistory) {
       try {
         const parsed = JSON.parse(savedChatHistory);
-        setChatHistory(parsed);
         setStats(prev => ({ ...prev, totalChats: parsed.length }));
       } catch (error) {
         console.error('Failed to load chat history:', error);
       }
     }
-
-    // Load app-specific chats
-    const savedAppChats = localStorage.getItem('app_chats');
-    if (savedAppChats) {
-      try {
-        const parsed = JSON.parse(savedAppChats);
-        setAppChats(parsed);
-        setStats(prev => ({ ...prev, totalApps: parsed.length }));
-      } catch (error) {
-        console.error('Failed to load app chats:', error);
-      }
-    }
   };
 
-  // Removed loadStats as it is now integrated into loadHistory to avoid double fetching
+  const checkModelStatus = async () => {
+    setIsCheckingModels(true);
+    const statuses: ModelStatus[] = [];
 
-
-  const handleNewOcr = () => {
-    if (onNewOcr) {
-      onNewOcr();
-    } else {
-      // Trigger screenshot capture via Tauri command
-      console.log('Starting new OCR...');
-      // TODO: Call Tauri command to trigger screenshot
-      // invoke('start_screenshot_capture');
-    }
-  };
-
-  const handleQuickChat = (initialText?: string) => {
-    if (onOpenQuickChat) {
-      onOpenQuickChat(initialText);
-    } else {
-      console.log('Opening quick chat...', initialText);
-    }
-  };
-
-  const handleOpenSettings = () => {
-    if (onOpenSettings) {
-      onOpenSettings();
-    } else {
-      console.log('Opening settings...');
-    }
-  };
-
-
-  const [selectedModel, setSelectedModel] = useState('local');
-  const [availableModels, setAvailableModels] = useState<string[]>(['local']);
-
-  useEffect(() => {
-    // Load available models
-    const loadModels = async () => {
-      // This is a placeholder. In a real app, we'd fetch this from universalAI
-      // For now, we'll check which keys are present in localStorage
-      const models = ['local'];
-      if (localStorage.getItem('openai_api_key')) models.push('openai');
-      if (localStorage.getItem('gemini_api_key')) models.push('gemini');
-      if (localStorage.getItem('claude_api_key')) models.push('claude');
-      if (localStorage.getItem('deepseek_api_key')) models.push('deepseek');
-      if (localStorage.getItem('grok_api_key')) models.push('grok');
-      if (localStorage.getItem('perplexity_api_key')) models.push('perplexity');
+    // Check Ollama status
+    try {
+      const status = await ollamaManager.getStatus();
+      setOllamaStatus(status);
       
-      setAvailableModels(models);
-      
-      // Load saved selection
-      const saved = localStorage.getItem('default_ai_provider');
-      if (saved && models.includes(saved)) {
-        setSelectedModel(saved);
+      if (status.isRunning && status.models.length > 0) {
+        status.models.slice(0, 3).forEach(model => {
+          statuses.push({
+            name: model.name,
+            status: 'online',
+            provider: 'Ollama'
+          });
+        });
+      } else if (status.isInstalled) {
+        statuses.push({
+          name: 'Ollama',
+          status: 'offline',
+          provider: 'Local'
+        });
       }
-    };
-    
-    loadModels();
-  }, []);
-
-  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const model = e.target.value;
-    setSelectedModel(model);
-    localStorage.setItem('default_ai_provider', model);
-  };
-
-  const getModelCapabilities = (model: string) => {
-    const caps = {
-      search: false,
-      think: false,
-      upload: false
-    };
-    
-    switch (model) {
-      case 'openai':
-        caps.search = true;
-        caps.think = true; // o1 models
-        caps.upload = true;
-        break;
-      case 'gemini':
-        caps.search = true;
-        caps.upload = true;
-        break;
-      case 'claude':
-        caps.upload = true;
-        break;
-      case 'deepseek':
-        caps.think = true;
-        break;
-      case 'perplexity':
-        caps.search = true;
-        break;
-      case 'grok':
-        caps.search = true;
-        break;
-      case 'local':
-        // Local might support these depending on the model loaded
-        break;
+    } catch (error) {
+      console.error('Failed to check Ollama status:', error);
     }
-    return caps;
+
+    // Check cloud API keys
+    const cloudProviders = [
+      { key: 'openai_api_key', name: 'GPT-4', provider: 'OpenAI' },
+      { key: 'claude_api_key', name: 'Claude', provider: 'Anthropic' },
+      { key: 'gemini_api_key', name: 'Gemini', provider: 'Google' },
+    ];
+
+    cloudProviders.forEach(({ key, name, provider }) => {
+      const hasKey = !!localStorage.getItem(key);
+      statuses.push({
+        name,
+        status: hasKey ? 'online' : 'offline',
+        provider
+      });
+    });
+
+    setModelStatuses(statuses);
+    setIsCheckingModels(false);
   };
 
-  const capabilities = getModelCapabilities(selectedModel);
-
-  const handleCapabilityAction = (action: 'search' | 'think' | 'upload') => {
-    console.log(`Triggering ${action} for model ${selectedModel}`);
-    // TODO: Implement actual actions
-    // For now, we can open quick chat with a specific context or mode
-    if (onOpenQuickChat) {
-      onOpenQuickChat();
+  const handleStartOllama = async () => {
+    setIsStartingOllama(true);
+    try {
+      await ollamaManager.startOllama();
+      // Wait a moment for Ollama to start
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await checkModelStatus();
+    } catch (error) {
+      console.error('Failed to start Ollama:', error);
+    } finally {
+      setIsStartingOllama(false);
     }
   };
 
-  const filterItems = (items: any[], query: string) => {
-    if (!query) return items;
-    return items.filter(item => 
-      JSON.stringify(item).toLowerCase().includes(query.toLowerCase())
-    );
+  const handleQuickChat = () => {
+    if (quickChatInput.trim() && onOpenQuickChat) {
+      onOpenQuickChat(quickChatInput.trim());
+      setQuickChatInput('');
+    }
   };
 
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleQuickChat();
+    }
+  };
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
+  const formatTimeAgo = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return new Date(timestamp).toLocaleDateString();
   };
 
   return (
-    <div className="homepage">
-      {/* Header */}
-      <div className="homepage-header">
-        <div className="homepage-header-left">
-          <h1 className="homepage-title">Ask OCR</h1>
-          <p className="homepage-subtitle">Your intelligent OCR assistant</p>
+    <div className="homepage-container">
+      {/* Sidebar */}
+      <aside className="homepage-sidebar">
+        <div className="sidebar-brand">
+          <div className="brand-icon">
+            <Sparkles size={22} />
+          </div>
+          <span className="brand-name">Bluesky</span>
         </div>
-        
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {/* Model Selector */}
-          <div className="model-selector-container">
-            <select 
-              className="model-selector"
-              value={selectedModel}
-              onChange={handleModelChange}
-              title="Select AI Model"
-              style={{
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: '1px solid var(--color-border-primary)',
-                background: 'var(--color-surface)',
-                color: 'var(--color-text-primary)',
-                fontSize: '14px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                outline: 'none'
-              }}
-            >
-              {availableModels.map(model => (
-                <option key={model} value={model}>
-                  {model === 'local' ? 'Local (Ollama)' : 
-                   model.charAt(0).toUpperCase() + model.slice(1)}
-                </option>
-              ))}
-            </select>
+
+        <nav className="sidebar-navigation">
+          <button className="nav-btn active">
+            <Home size={20} />
+            <span>Home</span>
+          </button>
+          <button className="nav-btn" onClick={onOpenMusic}>
+            <Music size={20} />
+            <span>Music Player</span>
+          </button>
+          <button className="nav-btn" onClick={onOpenMediaHelper}>
+            <FolderOpen size={20} />
+            <span>Media Helper</span>
+          </button>
+          <button className="nav-btn" onClick={onOpenSettings}>
+            <Settings size={20} />
+            <span>Settings</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="version-tag">v0.1.0</div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="homepage-main">
+        {/* Top Section: Welcome + Quick Actions */}
+        <section className="top-section">
+          <div className="welcome-area">
+            <h1>Welcome back!</h1>
+            <p>What would you like to do today?</p>
           </div>
 
-          <button className="header-button" onClick={handleOpenSettings}>
-            <span className="button-icon">⚙️</span>
-            Settings
-          </button>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <button className="quick-action-card primary" onClick={handleNewOcr}>
-          <div className="quick-action-icon">📸</div>
-          <div className="quick-action-content">
-            <div className="quick-action-title">New OCR</div>
-            <div className="quick-action-description">Capture and extract text</div>
-          </div>
-        </button>
-
-        <button className="quick-action-card" onClick={() => handleQuickChat()}>
-          <div className="quick-action-icon">💬</div>
-          <div className="quick-action-content">
-            <div className="quick-action-title">Quick Chat</div>
-            <div className="quick-action-description">Chat with AI models</div>
-          </div>
-        </button>
-
-        {capabilities.search && (
-          <button className="quick-action-card" onClick={() => handleCapabilityAction('search')}>
-            <div className="quick-action-icon">🌐</div>
-            <div className="quick-action-content">
-              <div className="quick-action-title">Web Search</div>
-              <div className="quick-action-description">Search the internet</div>
-            </div>
-          </button>
-        )}
-
-        {capabilities.think && (
-          <button className="quick-action-card" onClick={() => handleCapabilityAction('think')}>
-            <div className="quick-action-icon">🧠</div>
-            <div className="quick-action-content">
-              <div className="quick-action-title">Deep Think</div>
-              <div className="quick-action-description">Reasoning mode</div>
-            </div>
-          </button>
-        )}
-
-        {capabilities.upload && (
-          <button className="quick-action-card" onClick={() => handleCapabilityAction('upload')}>
-            <div className="quick-action-icon">📁</div>
-            <div className="quick-action-content">
-              <div className="quick-action-title">Upload File</div>
-              <div className="quick-action-description">Analyze documents</div>
-            </div>
-          </button>
-        )}
-
-        <div className="quick-action-card stats">
-          <div className="quick-action-icon">📊</div>
-          <div className="quick-action-content">
-            <div className="quick-action-title">Today</div>
-            <div className="quick-action-description">{stats.todayOcrs} OCRs processed</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Statistics */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-value">{stats.totalOcrs}</div>
-          <div className="stat-label">Total OCRs</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{stats.totalChats}</div>
-          <div className="stat-label">Chat Sessions</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{stats.totalApps}</div>
-          <div className="stat-label">Connected Apps</div>
-        </div>
-      </div>
-
-      {/* History Section */}
-      <div className="history-section">
-        <div className="history-header">
-          <div className="history-tabs">
-            <button
-              className={`history-tab ${activeTab === 'ocr' ? 'active' : ''}`}
-              onClick={() => setActiveTab('ocr')}
-            >
-              📄 OCR History
+          <div className="quick-actions">
+            <button className="action-btn primary" onClick={onNewOcr}>
+              <Camera size={20} />
+              <span>New OCR</span>
             </button>
-            <button
-              className={`history-tab ${activeTab === 'chats' ? 'active' : ''}`}
-              onClick={() => setActiveTab('chats')}
-            >
-              💬 Chat History
-            </button>
-            <button
-              className={`history-tab ${activeTab === 'apps' ? 'active' : ''}`}
-              onClick={() => setActiveTab('apps')}
-            >
-              📱 App Chats
+            <button className="action-btn secondary" onClick={() => onOpenQuickChat?.()}>
+              <MessageSquare size={20} />
+              <span>Quick Chat</span>
             </button>
           </div>
+        </section>
 
-          <input
-            type="text"
-            className="history-search"
-            placeholder="Search history..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        {/* Middle Section: Stats + Quick Chat */}
+        <section className="middle-section">
+          {/* Stats Cards */}
+          <div className="stats-row">
+            <div className="stat-card purple">
+              <div className="stat-icon">
+                <Eye size={24} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">{stats.totalOcrs}</span>
+                <span className="stat-label">Total OCRs</span>
+              </div>
+            </div>
 
-        <div className="history-content">
-          {activeTab === 'ocr' && (
-            <div className="history-list">
-              {filterItems(ocrHistory, searchQuery).length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-state-icon">📄</div>
-                  <div className="empty-state-title">No OCR history yet</div>
-                  <div className="empty-state-description">
-                    Start by capturing a screenshot with OCR
-                  </div>
+            <div className="stat-card blue">
+              <div className="stat-icon">
+                <MessageSquare size={24} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">{stats.totalChats}</span>
+                <span className="stat-label">Chats</span>
+              </div>
+            </div>
+
+            <div className="stat-card green">
+              <div className="stat-icon">
+                <Cpu size={24} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">
+                  {modelStatuses.filter(m => m.status === 'online').length}
+                </span>
+                <span className="stat-label">Active Models</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Chat Panel */}
+          <div className="quick-chat-panel">
+            <div className="panel-header">
+              <Sparkles size={18} />
+              <h3>Quick Chat</h3>
+            </div>
+            <div className="chat-input-area">
+              <textarea
+                ref={quickChatInputRef}
+                value={quickChatInput}
+                onChange={(e) => setQuickChatInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask anything... (Enter to send)"
+                rows={2}
+              />
+              <button 
+                className="send-btn"
+                onClick={handleQuickChat}
+                disabled={!quickChatInput.trim()}
+              >
+                <Send size={18} />
+              </button>
+            </div>
+            <div className="chat-suggestions">
+              <button onClick={() => setQuickChatInput('Explain this code: ')}>
+                Explain code
+              </button>
+              <button onClick={() => setQuickChatInput('Summarize: ')}>
+                Summarize text
+              </button>
+              <button onClick={() => setQuickChatInput('Help me write: ')}>
+                Write content
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom Section: Model Status + Recent OCRs */}
+        <section className="bottom-section">
+          {/* Model Detection Panel */}
+          <div className="model-status-panel">
+            <div className="panel-header">
+              <Cpu size={18} />
+              <h3>Model Status</h3>
+              <button 
+                className="refresh-btn"
+                onClick={checkModelStatus}
+                disabled={isCheckingModels}
+              >
+                <RefreshCw size={14} className={isCheckingModels ? 'spinning' : ''} />
+                {isCheckingModels ? 'Checking...' : 'Refresh'}
+              </button>
+            </div>
+            <div className="model-list">
+              {modelStatuses.length === 0 && !isCheckingModels ? (
+                <div className="no-models">
+                  <AlertCircle size={20} />
+                  <span>No models configured</span>
                 </div>
               ) : (
-                filterItems(ocrHistory, searchQuery).map((item) => (
+                modelStatuses.map((model, index) => (
+                  <div key={index} className={`model-item ${model.status}`}>
+                    <div className="model-indicator">
+                      {model.status === 'online' && <CheckCircle size={16} />}
+                      {model.status === 'offline' && <XCircle size={16} />}
+                      {model.status === 'checking' && <AlertCircle size={16} />}
+                    </div>
+                    <div className="model-info">
+                      <span className="model-name">{model.name}</span>
+                      <span className="model-provider">{model.provider}</span>
+                    </div>
+                    <span className={`status-badge ${model.status}`}>
+                      {model.status}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+            {ollamaStatus && ollamaStatus.isInstalled && !ollamaStatus.isRunning && (
+              <div className="ollama-cta ollama-start">
+                <div className="ollama-cta-info">
+                  <Play size={16} />
+                  <span>Ollama is installed but not running</span>
+                </div>
+                <button 
+                  className="start-ollama-btn"
+                  onClick={handleStartOllama}
+                  disabled={isStartingOllama}
+                >
+                  {isStartingOllama ? (
+                    <>
+                      <RefreshCw size={14} className="spinning" />
+                      Starting...
+                    </>
+                  ) : (
+                    <>
+                      <Play size={14} />
+                      Start Ollama
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+            {ollamaStatus && !ollamaStatus.isInstalled && (
+              <div className="ollama-cta">
+                <div className="ollama-cta-info">
+                  <ExternalLink size={16} />
+                  <span>Install Ollama for local AI</span>
+                </div>
+                <button onClick={onOpenSettings}>Setup →</button>
+              </div>
+            )}
+          </div>
+
+          {/* Recent OCRs Panel */}
+          <div className="recent-ocrs-panel">
+            <div className="panel-header">
+              <Eye size={18} />
+              <h3>Recent OCRs</h3>
+            </div>
+            <div className="ocr-list">
+              {recentOcrs.length === 0 ? (
+                <div className="no-ocrs">
+                  <Camera size={24} />
+                  <span>No OCRs yet</span>
+                  <button onClick={onNewOcr}>Capture First OCR</button>
+                </div>
+              ) : (
+                recentOcrs.map((ocr) => (
                   <div 
-                    key={item.id} 
-                    className="history-item clickable" 
-                    onClick={() => handleQuickChat(item.text)}
-                    title="Click to open in Quick Chat"
-                    style={{ cursor: 'pointer' }}
+                    key={ocr.id} 
+                    className="ocr-item"
+                    onClick={() => onOpenQuickChat?.(ocr.text)}
                   >
-                    <div className="history-item-icon">📄</div>
-                    <div className="history-item-content">
-                      <div className="history-item-text">
-                        {item.text.substring(0, 100)}
-                        {item.text.length > 100 && '...'}
-                      </div>
-                      <div className="history-item-meta">
-                        <span className="history-item-language">{item.language}</span>
-                        <span className="history-item-time">{formatDate(item.timestamp)}</span>
-                      </div>
+                    <div className="ocr-preview">
+                      {ocr.text.substring(0, 60)}
+                      {ocr.text.length > 60 && '...'}
+                    </div>
+                    <div className="ocr-meta">
+                      <span className="ocr-lang">{ocr.language}</span>
+                      <span className="ocr-time">{formatTimeAgo(ocr.timestamp)}</span>
                     </div>
                   </div>
                 ))
               )}
             </div>
-          )}
-
-          {activeTab === 'chats' && (
-            <div className="history-list">
-              {filterItems(chatHistory, searchQuery).length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-state-icon">💬</div>
-                  <div className="empty-state-title">No chat history yet</div>
-                  <div className="empty-state-description">
-                    Start a conversation with Quick Chat
-                  </div>
-                </div>
-              ) : (
-                filterItems(chatHistory, searchQuery).map((item) => (
-                  <div key={item.id} className="history-item">
-                    <div className="history-item-icon">💬</div>
-                    <div className="history-item-content">
-                      <div className="history-item-title">{item.title}</div>
-                      <div className="history-item-text">{item.lastMessage}</div>
-                      <div className="history-item-meta">
-                        <span>{item.messages} messages</span>
-                        <span className="history-item-time">{formatDate(item.timestamp)}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {activeTab === 'apps' && (
-            <div className="app-chats-list">
-              {appChats.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-state-icon">📱</div>
-                  <div className="empty-state-title">No app chats yet</div>
-                  <div className="empty-state-description">
-                    App-specific chats will appear here
-                  </div>
-                </div>
-              ) : (
-                appChats.map((app, index) => (
-                  <div key={index} className="app-chat-group">
-                    <div className="app-chat-header">
-                      <span className="app-chat-icon">{app.appIcon}</span>
-                      <span className="app-chat-name">{app.appName}</span>
-                      <span className="app-chat-count">{app.chats.length} chats</span>
-                    </div>
-                    <div className="app-chat-items">
-                      {app.chats.map((chat) => (
-                        <div key={chat.id} className="history-item nested">
-                          <div className="history-item-content">
-                            <div className="history-item-title">{chat.title}</div>
-                            <div className="history-item-text">{chat.lastMessage}</div>
-                            <div className="history-item-meta">
-                              <span>{chat.messages} messages</span>
-                              <span className="history-item-time">{formatDate(chat.timestamp)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };

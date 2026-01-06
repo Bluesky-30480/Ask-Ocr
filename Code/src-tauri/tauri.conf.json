@@ -8,7 +8,7 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "Ask OCR",
+    "productName": "Bluesky",
     "version": "0.1.0"
   },
   "tauri": {
@@ -38,9 +38,15 @@
       "notification": {
         "all": true
       },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**"]
+      },
       "shell": {
         "all": false,
-        "open": true
+        "open": true,
+        "execute": true
       },
       "window": {
         "all": true,
@@ -78,7 +84,7 @@
     "bundle": {
       "active": true,
       "category": "Productivity",
-      "copyright": "Copyright © 2025 Ask OCR Team",
+      "copyright": "Copyright © 2025 Bluesky Team",
       "deb": {
         "depends": []
       },
@@ -118,15 +124,16 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 720,
-        "resizable": true,
-        "title": "Ask OCR",
-        "width": 1200,
-        "minWidth": 800,
-        "minHeight": 600,
+        "height": 950,
+        "resizable": false,
+        "maximizable": false,
+        "title": "Bluesky",
+        "width": 1400,
+        "minWidth": 1200,
+        "minHeight": 850,
         "center": true,
-        "decorations": true,
-        "transparent": false
+        "decorations": false,
+        "transparent": true
       }
     ]
   }

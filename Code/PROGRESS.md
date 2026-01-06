@@ -542,3 +542,81 @@ Next session should focus on:
 ---
 
 *End of Session 6 - Continuing to Task 8 and beyond...*
+
+# Session 11 Summary: Universal Assistant - Batch File Operations
+
+**Date**: 2025-10-27
+**Focus**: Universal Assistant - Batch File Operations (Task 21.9)
+
+## ✅ Completed Tasks
+
+### 1. Backend: File Operations Module
+- **New Module**: Created `src-tauri/src/file_operations/mod.rs` to handle file system modifications.
+- **Safety**: Implemented `rename_file` with existence checks to prevent accidental overwrites.
+- **Integration**: Registered the module in `main.rs` and exposed it via Tauri commands.
+
+### 2. Frontend: User Interface
+- **Preview Modal**: Created `FileOperationsPreview.tsx` to show "Old Name -> New Name" diffs before execution.
+- **Multi-Selection**: Updated `FileSearch.tsx` to allow selecting multiple files for batch processing.
+- **Metadata Display**: Enhanced file attachments to show rich metadata (lines, size, dimensions).
+
+### 3. AI Integration & Prompt Engineering
+- **Prompt Template**: Updated `ai_assistant` in `enhanced-prompt.service.ts` to include instructions for file renaming and a strict JSON output format.
+- **Context Routing**: Updated `context-aware-routing.service.ts` to automatically route queries containing "rename" or "organize" to the `ai_assistant` template.
+- **Command Parsing**: Updated `UniversalAssistant.tsx` to parse JSON blocks from AI responses and trigger the preview modal.
+
+## 📝 Technical Details
+
+### Modified Files
+- `src-tauri/src/file_operations/mod.rs`: Core logic for file renaming.
+- `frontend/src/components/UniversalAssistant/FileOperationsPreview.tsx`: UI for reviewing changes.
+- `frontend/src/services/ai/enhanced-prompt.service.ts`: System prompt updates.
+- `frontend/src/services/context/context-aware-routing.service.ts`: Query-based routing logic.
+- `frontend/src/components/UniversalAssistant/UniversalAssistant.tsx`: Main controller logic.
+
+### Next Steps
+- Test the end-to-end flow with various AI models (Local, OpenAI, etc.).
+- Add support for more file operations (move, delete, copy).
+- Implement "Undo" functionality for file operations.
+
+# Session 12 Summary: Local Music Player
+
+**Date**: 2025-10-27
+**Focus**: Local Music Player Feature
+
+## ✅ Completed Tasks
+
+### 1. Backend: Music Module
+- **New Module**: Created `src-tauri/src/music/mod.rs`.
+- **Dependencies**: Added `lofty` crate for robust audio metadata parsing (ID3, etc.).
+- **Commands**:
+  - `scan_music_folder`: Recursively scans a directory for audio files (mp3, wav, flac, ogg, m4a) and extracts metadata (Title, Artist, Album, Duration).
+  - `get_album_art`: Extracts embedded album art on demand to keep the initial scan fast.
+
+### 2. Frontend: Music Player Component
+- **Component**: Created `MusicPlayer.tsx` with a comprehensive UI.
+- **Features**:
+  - **Playlist Management**: Table view of tracks in the selected folder.
+  - **Playback Controls**: Play, Pause, Next, Previous, Shuffle, Repeat.
+  - **Progress & Volume**: Seekable progress bar and volume slider.
+  - **Visualizer**: Implemented a real-time "Rhythm Bar" (音量律动条) using the Web Audio API (`AnalyserNode`) and HTML5 Canvas.
+  - **Album Art**: Displays large album art and mini player art.
+
+### 3. Integration
+- **Homepage**: Added a new "🎵 Music" tab to the Homepage history section.
+- **Navigation**: Users can easily switch between OCR History, Chat History, and the Music Player.
+
+## 📝 Technical Details
+
+### Modified Files
+- `src-tauri/Cargo.toml`: Added `lofty`.
+- `src-tauri/src/main.rs`: Registered music commands.
+- `src-tauri/src/music/mod.rs`: Core logic.
+- `frontend/src/components/MusicPlayer/MusicPlayer.tsx`: UI & Logic.
+- `frontend/src/components/MusicPlayer/MusicPlayer.css`: Styling.
+- `frontend/src/components/Homepage/Homepage.tsx`: Integration.
+
+### Next Steps
+- Test with large music libraries to ensure performance.
+- Add "Add to Queue" functionality.
+- Persist the last played folder/track.

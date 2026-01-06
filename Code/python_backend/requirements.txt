@@ -1,0 +1,12 @@
+spotdl
+openai-whisper
+torch
+torchaudio
+pyannote.audio
+denoiser
+numpy
+scipy
+ffmpeg-python
+faster-whisper
+transformers
+speechbrain

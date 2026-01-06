@@ -65,9 +65,8 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
   useEffect(() => {
     if (initialText && modelsLoaded) {
       // If initialText is provided (e.g. from OCR), we start a FRESH session state
-      setCurrentSessionId(null);
-      setMessages([]);
-      setInputText(initialText);
+      // Create the session immediately so it appears in history
+      createNewSession(initialText);
       
       // Auto-send the message
       // We use a timeout to ensure state is settled and to allow the UI to render the initial state first
@@ -776,7 +775,12 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
           ) : (
             messages.map((message) => (
               <div key={message.id} className={`qc-message-wrapper ${message.role}`}>
-                <div className="qc-message-avatar">
+                <div 
+                  className={`qc-message-avatar ${message.role === 'assistant' ? 'clickable' : ''}`}
+                  onClick={() => message.role === 'assistant' && setShowThinking(!showThinking)}
+                  title={message.role === 'assistant' ? "Click to toggle thinking process" : ""}
+                  style={message.role === 'assistant' ? { cursor: 'pointer' } : {}}
+                >
                   {message.role === 'user' ? '👤' : '🤖'}
                 </div>
                 <div className="qc-message-content">
@@ -881,7 +885,6 @@ export const QuickChat: React.FC<QuickChatProps> = ({ initialText }) => {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyPress}
-              disabled={isLoading}
               rows={1}
               style={{ height: 'auto', minHeight: '44px', maxHeight: '200px' }}
             />

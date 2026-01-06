@@ -11,8 +11,8 @@ use std::os::windows::ffi::OsStringExt;
 use std::ptr::null_mut;
 use winapi::shared::minwindef::MAX_PATH;
 use winapi::um::winuser::{
-    GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId, SendMessageTimeoutW,
-    SMTO_ABORTIFHUNG, WM_GETTEXT,
+    GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId, SendInput, INPUT, INPUT_KEYBOARD, VK_CONTROL, 
+    KEYEVENTF_KEYUP,
 };
 use winapi::um::processthreadsapi::OpenProcess;
 use winapi::um::psapi::{GetModuleFileNameExW, GetProcessImageFileNameW};
@@ -183,49 +183,15 @@ pub async fn get_terminal_context(_process_name: &str) -> Result<TerminalContext
 
 /// Get selected text from active window
 pub async fn get_selected_text() -> Result<Option<String>, String> {
-    unsafe {
-        // Get foreground window
-        let hwnd = GetForegroundWindow();
-        if hwnd.is_null() {
-            return Ok(None);
-        }
-
-        // Try to get text using WM_GETTEXT message
-        let mut buffer: [u16; 4096] = [0; 4096];
-        let mut result: usize = 0;
-        
-        let send_result = SendMessageTimeoutW(
-            hwnd,
-            WM_GETTEXT,
-            4096,
-            buffer.as_mut_ptr() as isize,
-            SMTO_ABORTIFHUNG,
-            1000, // 1 second timeout
-            &mut result,
-        );
-
-        if send_result != 0 && result > 0 {
-            let text = OsString::from_wide(&buffer[..result])
-                .to_string_lossy()
-                .to_string();
-            
-            if !text.is_empty() {
-                return Ok(Some(text));
-            }
-        }
-
-        // Fallback: try using UI Automation for selected text
-        // This would require the UIAutomation COM API
-        // For simplicity, returning None for now
-
-        Ok(None)
-    }
+    // Try using clipboard method as it's the most reliable for "selected text" across apps
+    // although it is invasive (clears clipboard temporarily)
+    get_selected_text_via_clipboard().await
 }
 
 /// Helper function to send Ctrl+C and read clipboard
 /// Note: This is invasive and should be used carefully
 #[allow(dead_code)]
-async fn get_selected_text_via_clipboard() -> Result<Option<String>, String> {
+pub async fn get_selected_text_via_clipboard() -> Result<Option<String>, String> {
     use clipboard_win::{get_clipboard_string, set_clipboard_string};
     use std::thread;
     use std::time::Duration;
@@ -236,18 +202,47 @@ async fn get_selected_text_via_clipboard() -> Result<Option<String>, String> {
     // Clear clipboard
     let _ = set_clipboard_string("");
 
-    // Simulate Ctrl+C (this requires additional keyboard simulation code)
-    // For safety, this is not implemented in this basic version
+    // Simulate Ctrl+C
+    unsafe {
+        let mut inputs: [INPUT; 4] = std::mem::zeroed();
 
-    thread::sleep(Duration::from_millis(50));
+        // Ctrl Down
+        inputs[0].type_ = INPUT_KEYBOARD;
+        inputs[0].u.ki_mut().wVk = VK_CONTROL as u16;
 
-    // Read clipboard
-    let new_clipboard = get_clipboard_string().ok();
+        // C Down
+        inputs[1].type_ = INPUT_KEYBOARD;
+        inputs[1].u.ki_mut().wVk = 0x43; // 'C' key
+
+        // C Up
+        inputs[2].type_ = INPUT_KEYBOARD;
+        inputs[2].u.ki_mut().wVk = 0x43;
+        inputs[2].u.ki_mut().dwFlags = KEYEVENTF_KEYUP;
+
+        // Ctrl Up
+        inputs[3].type_ = INPUT_KEYBOARD;
+        inputs[3].u.ki_mut().wVk = VK_CONTROL as u16;
+        inputs[3].u.ki_mut().dwFlags = KEYEVENTF_KEYUP;
+
+        SendInput(4, inputs.as_mut_ptr(), std::mem::size_of::<INPUT>() as i32);
+    }
+
+    // Wait for clipboard update (retry a few times)
+    let mut new_text = None;
+    for _ in 0..20 { // Wait up to 1 second (20 * 50ms)
+        thread::sleep(Duration::from_millis(50));
+        if let Ok(text) = get_clipboard_string() {
+            if !text.is_empty() {
+                new_text = Some(text);
+                break;
+            }
+        }
+    }
 
     // Restore old clipboard
     if let Some(old) = old_clipboard {
         let _ = set_clipboard_string(&old);
     }
 
-    Ok(new_clipboard)
+    Ok(new_text)
 }

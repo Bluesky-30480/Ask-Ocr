@@ -157,7 +157,7 @@ export class UniversalAIService {
     );
 
     // Step 3: Select provider
-    let provider: 'local' | 'custom' | 'openai' | 'perplexity';
+    let provider: 'local' | 'custom' | 'openai' | 'perplexity' | 'gemini' | 'claude' | 'deepseek' | 'grok';
     let model: string;
 
     if (request.forceProvider) {
@@ -274,7 +274,7 @@ export class UniversalAIService {
     );
 
     // Step 3: Select provider
-    let provider: 'local' | 'custom' | 'openai' | 'perplexity';
+    let provider: 'local' | 'custom' | 'openai' | 'perplexity' | 'gemini' | 'claude' | 'deepseek' | 'grok';
     let model: string;
 
     if (request.forceProvider) {
@@ -322,7 +322,8 @@ export class UniversalAIService {
         return {
             ...response,
             template,
-            routingReason
+            routingReason,
+            confidence: response.confidence ?? 0.8
         };
       }
     } finally {
@@ -340,10 +341,29 @@ export class UniversalAIService {
     const isRunning = await ollamaManager.isOllamaRunning();
     if (!isRunning) throw new Error('Ollama is not running');
 
-    const messages: Array<{ role: string; content: string }> = [];
+    const messages: Array<{ role: string; content: string; images?: string[] }> = [];
     if (request.systemPrompt) messages.push({ role: 'system', content: request.systemPrompt });
     if (request.context) messages.push({ role: 'system', content: `Context: ${request.context}` });
-    messages.push({ role: 'user', content: request.prompt });
+    
+    let userContent = request.prompt;
+    const images: string[] = [];
+
+    if (request.attachments && request.attachments.length > 0) {
+        for (const attachment of request.attachments) {
+            if (attachment.type === 'document') {
+                userContent += `\n\n--- File: ${attachment.filename} ---\n${attachment.data}\n--- End File ---`;
+            } else if (attachment.type === 'image') {
+                const base64 = attachment.data.includes(',') ? attachment.data.split(',')[1] : attachment.data;
+                images.push(base64);
+            }
+        }
+    }
+
+    messages.push({ 
+        role: 'user', 
+        content: userContent,
+        images: images.length > 0 ? images : undefined
+    });
 
     const response = await fetch('http://localhost:11434/api/chat', {
       method: 'POST',
@@ -663,13 +683,15 @@ Selected text: "${context.selectedText.substring(0, 200)}${
    */
   async getProviderStatus() {
     const ollamaRunning = await ollamaManager.isOllamaRunning();
-    const openaiAvailable = !!this.openaiClient;
 
     return {
       local: ollamaRunning,
-      openai: openaiAvailable,
-      custom: false, // TODO: Check custom models
-      perplexity: false, // TODO: Implement Perplexity
+      openai: !!this.openaiClient,
+      anthropic: !!this.claudeClient,
+      gemini: !!this.geminiClient,
+      deepseek: !!this.deepseekClient,
+      grok: !!this.grokClient,
+      perplexity: !!this.perplexityClient,
     };
   }
 

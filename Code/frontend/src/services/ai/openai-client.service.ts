@@ -14,7 +14,7 @@ export interface OpenAIConfig {
 
 export interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
 }
 
 export interface OpenAIChatCompletionRequest {
@@ -93,9 +93,38 @@ export class OpenAIClient {
     }
 
     // Add user prompt
+    let userContent: string | Array<any> = request.prompt;
+
+    if (request.attachments && request.attachments.length > 0) {
+      const hasImages = request.attachments.some(a => a.type === 'image');
+      
+      if (hasImages) {
+        userContent = [{ type: 'text', text: request.prompt }];
+        
+        for (const attachment of request.attachments) {
+          if (attachment.type === 'image') {
+            userContent.push({
+              type: 'image_url',
+              image_url: {
+                url: attachment.data.startsWith('data:') ? attachment.data : `data:${attachment.mimeType};base64,${attachment.data}`
+              }
+            });
+          } else if (attachment.type === 'document') {
+             (userContent[0] as any).text += `\n\n--- File: ${attachment.filename} ---\n${attachment.data}\n--- End File ---`;
+          }
+        }
+      } else {
+        for (const attachment of request.attachments) {
+          if (attachment.type === 'document') {
+            userContent += `\n\n--- File: ${attachment.filename} ---\n${attachment.data}\n--- End File ---`;
+          }
+        }
+      }
+    }
+
     messages.push({
       role: 'user',
-      content: request.prompt,
+      content: userContent,
     });
 
     const model = request.model || this.config.model || 'gpt-3.5-turbo';

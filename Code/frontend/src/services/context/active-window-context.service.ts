@@ -105,7 +105,7 @@ export class ActiveWindowContextService {
 
   constructor(options: ContextDetectionOptions = {}) {
     this.options = {
-      captureSelectedText: true,
+      captureSelectedText: false,
       captureClipboard: false,
       useOCRFallback: false,
       refreshRate: 100, // 100ms
@@ -141,7 +141,8 @@ export class ActiveWindowContextService {
   /**
    * Detect current application context
    */
-  async detectContext(): Promise<ApplicationContext> {
+  async detectContext(overrides?: Partial<ContextDetectionOptions>): Promise<ApplicationContext> {
+    const opts = { ...this.options, ...overrides };
     try {
       // Get active window information from backend
       const windowInfo = await invoke<{
@@ -151,7 +152,7 @@ export class ActiveWindowContextService {
       }>('get_active_window_info');
 
       // Check if app is disabled
-      if (this.options.disabledApps?.includes(windowInfo.processName)) {
+      if (opts.disabledApps?.includes(windowInfo.processName)) {
         return this.createUnknownContext(windowInfo);
       }
 
@@ -184,8 +185,8 @@ export class ActiveWindowContextService {
       }
 
       // Capture selected text if enabled
-      if (this.options.captureSelectedText) {
-        context.selectedText = await this.captureSelectedText();
+      if (opts.captureSelectedText) {
+        context.selectedText = await this.captureSelectedText(opts);
       }
 
       // Store and notify
@@ -496,14 +497,14 @@ export class ActiveWindowContextService {
   /**
    * Capture selected text from active window
    */
-  private async captureSelectedText(): Promise<string | undefined> {
+  private async captureSelectedText(opts: ContextDetectionOptions): Promise<string | undefined> {
     try {
       // Try accessibility API first
       const text = await invoke<string | null>('get_selected_text');
       if (text) return text;
 
       // Fallback to clipboard monitoring
-      if (this.options.captureClipboard) {
+      if (opts.captureClipboard) {
         const clipboard = await navigator.clipboard.readText();
         return clipboard || undefined;
       }

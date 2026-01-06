@@ -1,0 +1,35 @@
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.confirm-selection-btn {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.confirm-selection-btn:hover {
+  opacity: 0.9;
+}
+
+.search-result-item.selected {
+  background-color: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.selection-checkbox {
+  font-size: 1.2rem;
+  margin-right: 8px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.search-result-item.selected .selection-checkbox {
+  opacity: 1;
+}

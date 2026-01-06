@@ -3,7 +3,7 @@
  */
 
 .app-router {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--color-background-primary, #1e1e1e); /* Added fallback color */

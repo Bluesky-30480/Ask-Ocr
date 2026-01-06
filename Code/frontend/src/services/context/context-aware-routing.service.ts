@@ -190,6 +190,19 @@ export class ContextAwareRoutingService {
    * Route AI request based on application context
    */
   route(context: ApplicationContext, userQuery?: string): RoutingDecision {
+    // Check for explicit file operation intent in query
+    if (userQuery) {
+      const lowerQuery = userQuery.toLowerCase();
+      if (lowerQuery.includes('rename') || lowerQuery.includes('organize files') || lowerQuery.includes('change filename')) {
+        return {
+          template: 'ai_assistant',
+          reason: 'File operation detected in query - using general assistant with file capabilities',
+          confidence: 0.95,
+          variables: {},
+        };
+      }
+    }
+
     // Find matching rule with highest priority
     for (const rule of this.routingRules) {
       if (this.matchesRule(rule, context)) {

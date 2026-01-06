@@ -493,7 +493,6 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ ocrText, imageData, language })
 
   const handleSaveToHistory = async () => {
     try {
-      // TODO: Implement database save
       const { invoke } = await import('@tauri-apps/api/tauri');
       await invoke('create_ocr_record', {
         imagePath: imageData || '',
@@ -529,7 +528,6 @@ const ActionsTab: React.FC<ActionsTabProps> = ({ ocrText, imageData, language })
   const handleExportPDF = async () => {
     try {
       // Using jsPDF library would be ideal, but for now create a simple text file
-      // TODO: Implement proper PDF export with jsPDF
       const content = `OCR Result
 ${'='.repeat(50)}
 
@@ -603,7 +601,6 @@ ${ocrText}`,
   };
 
   const handleHighlight = () => {
-    // TODO: Implement image highlight feature
     if (imageData) {
       showToast('ℹ️ Highlight feature coming soon');
     } else {

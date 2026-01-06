@@ -7,18 +7,22 @@ import React, { useRef, useState } from 'react';
 import { Homepage } from '../Homepage/Homepage';
 import { SettingsPage } from '../Settings/SettingsPage';
 import { QuickChat } from '../QuickChat/QuickChat';
+import { MusicPlayer } from '../MusicPlayer/MusicPlayer';
+import { MediaHelper } from '../MediaHelper/MediaHelper';
 import OcrResultsModal from '../OcrResultsModal';
 import { screenshotOcrWorkflow, type ScreenshotOcrProgress } from '../../services/screenshot-ocr-workflow.service';
 import { invoke } from '@tauri-apps/api/tauri';
 import { listen } from '@tauri-apps/api/event';
 import type { OcrResult } from '@shared/types';
+import type { View } from '../../App';
 import './AppRouter.css';
 
-type View = 'home' | 'settings' | 'quickchat';
+interface AppRouterProps {
+  currentView: View;
+  onNavigate: (view: View) => void;
+}
 
-export const AppRouter: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>('home');
-  const [breadcrumbs, setBreadcrumbs] = useState<string[]>(['Home']);
+export const AppRouter: React.FC<AppRouterProps> = ({ currentView, onNavigate }) => {
   const [quickChatInitialText, setQuickChatInitialText] = useState<string>('');
   const [isOcrModalOpen, setIsOcrModalOpen] = useState(false);
   const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
@@ -26,24 +30,7 @@ export const AppRouter: React.FC = () => {
   // No in-app overlay path; all captures use native snipping UI
 
   const navigateTo = (view: View) => {
-    setCurrentView(view);
-    
-    // Update breadcrumbs
-    switch (view) {
-      case 'home':
-        setBreadcrumbs(['Home']);
-        break;
-      case 'settings':
-        setBreadcrumbs(['Home', 'Settings']);
-        break;
-      case 'quickchat':
-        setBreadcrumbs(['Home', 'Quick Chat']);
-        break;
-    }
-  };
-
-  const navigateHome = () => {
-    navigateTo('home');
+    onNavigate(view);
   };
 
   const handleNewOcr = async (_mode: 'fullscreen' | 'region' = 'region') => {
@@ -218,6 +205,8 @@ export const AppRouter: React.FC = () => {
               setQuickChatInitialText(text || '');
               navigateTo('quickchat');
             }}
+            onOpenMusic={() => navigateTo('music')}
+            onOpenMediaHelper={() => navigateTo('media-helper')}
             onNewOcr={handleNewOcr}
           />
         );
@@ -225,6 +214,10 @@ export const AppRouter: React.FC = () => {
         return <SettingsPage />;
       case 'quickchat':
         return <QuickChat initialText={quickChatInitialText} />;
+      case 'music':
+        return <MusicPlayer />;
+      case 'media-helper':
+        return <MediaHelper />;
       default:
         return (
           <Homepage 
@@ -233,6 +226,8 @@ export const AppRouter: React.FC = () => {
               setQuickChatInitialText(text || '');
               navigateTo('quickchat');
             }}
+            onOpenMusic={() => navigateTo('music')}
+            onOpenMediaHelper={() => navigateTo('media-helper')}
             onNewOcr={handleNewOcr}
           />
         );
@@ -241,22 +236,6 @@ export const AppRouter: React.FC = () => {
 
   return (
     <div className="app-router">
-      {/* Breadcrumb Navigation */}
-      {currentView !== 'home' && (
-        <div className="app-breadcrumbs">
-          <button className="breadcrumb-item" onClick={navigateHome}>
-            🏠 Home
-          </button>
-          <span className="breadcrumb-separator">›</span>
-          <span className="breadcrumb-item active">
-            {breadcrumbs[breadcrumbs.length - 1]}
-          </span>
-          <button className="breadcrumb-close" onClick={navigateHome}>
-            ✕
-          </button>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="app-content">
         {renderView()}

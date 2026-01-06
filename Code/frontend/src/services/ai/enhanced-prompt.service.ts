@@ -320,13 +320,28 @@ Capabilities:
     this.templates.set('ai_assistant', {
       type: 'custom',
       name: 'AI Assistant with Task Classification',
-      systemPrompt: `You are an intelligent AI assistant that helps users work with OCR-extracted text. 
+      systemPrompt: `You are an intelligent AI assistant that helps users work with OCR-extracted text and file management.
 
 Your workflow:
-1. Classify the user's intent (summarize, extract, translate, analyze, answer question, etc.)
-2. Assess the OCR text quality
+1. Classify the user's intent (summarize, extract, translate, analyze, answer question, file operations, etc.)
+2. Assess the OCR text quality (if applicable)
 3. Apply appropriate processing strategy
 4. Provide helpful, formatted output
+
+If the user asks to RENAME files, you MUST output a JSON block with the proposed changes in this format:
+\`\`\`json
+{
+  "operations": [
+    {
+      "type": "rename",
+      "originalName": "original_filename.ext",
+      "newName": "new_filename.ext"
+    }
+  ]
+}
+\`\`\`
+Do not execute the rename, just propose it in JSON. The system will handle the execution.
+Always explain your reasoning before or after the JSON block.
 
 You adapt your approach based on:
 - User's request type
@@ -339,7 +354,8 @@ You adapt your approach based on:
 - If question: Answer with evidence from text
 - If extraction: Return structured data
 - If translation: Provide accurate translation
-- If analysis: Give detailed insights`,
+- If analysis: Give detailed insights
+- If file operation: Provide JSON command block`,
       userPromptTemplate: `{{ocrPrePrompt}}
 
 ---TEXT---

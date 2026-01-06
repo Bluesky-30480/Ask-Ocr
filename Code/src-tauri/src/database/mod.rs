@@ -16,7 +16,7 @@ const CURRENT_DB_VERSION: i32 = 1;
 
 // Database connection wrapper
 pub struct Database {
-    conn: Mutex<Connection>,
+    pub(crate) conn: Mutex<Connection>,
 }
 
 impl Database {
@@ -98,6 +98,43 @@ impl Database {
                 description TEXT,
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL
+            )",
+            [],
+        )?;
+
+        // Music Player Tables
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS songs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                artist TEXT,
+                album TEXT,
+                duration INTEGER,
+                file_path TEXT NOT NULL UNIQUE,
+                original_path TEXT,
+                is_liked INTEGER DEFAULT 0,
+                added_at INTEGER NOT NULL
+            )",
+            [],
+        )?;
+
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS playlists (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                created_at INTEGER NOT NULL
+            )",
+            [],
+        )?;
+
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS playlist_songs (
+                playlist_id INTEGER,
+                song_id INTEGER,
+                order_index INTEGER,
+                PRIMARY KEY (playlist_id, song_id),
+                FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
+                FOREIGN KEY(song_id) REFERENCES songs(id) ON DELETE CASCADE
             )",
             [],
         )?;
@@ -197,6 +234,28 @@ pub struct Migration {
     pub version: i32,
     pub name: String,
     pub applied_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Song {
+    pub id: Option<i64>,
+    pub title: Option<String>,
+    pub artist: Option<String>,
+    pub album: Option<String>,
+    pub duration: Option<i64>,
+    pub file_path: String,
+    pub original_path: Option<String>,
+    pub is_liked: bool,
+    pub added_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Playlist {
+    pub id: Option<i64>,
+    pub name: String,
+    pub created_at: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -643,6 +702,181 @@ pub fn delete_setting(
         .map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+// ============================================================================
+// Music Player Operations
+// ============================================================================
+
+#[tauri::command]
+pub fn add_song_to_db(
+    state: tauri::State<Database>,
+    song: Song,
+) -> Result<i64, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    
+    conn.execute(
+        "INSERT INTO songs (
+            title, artist, album, duration, file_path, original_path, is_liked, added_at
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        params![
+            song.title,
+            song.artist,
+            song.album,
+            song.duration,
+            song.file_path,
+            song.original_path,
+            if song.is_liked { 1 } else { 0 },
+            song.added_at,
+        ],
+    ).map_err(|e| e.to_string())?;
+
+    Ok(conn.last_insert_rowid())
+}
+
+#[tauri::command]
+pub fn get_all_songs(state: tauri::State<Database>) -> Result<Vec<Song>, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    
+    let mut stmt = conn.prepare(
+        "SELECT id, title, artist, album, duration, file_path, original_path, is_liked, added_at 
+         FROM songs ORDER BY title"
+    ).map_err(|e| e.to_string())?;
+
+    let songs = stmt.query_map([], |row| {
+        Ok(Song {
+            id: Some(row.get(0)?),
+            title: row.get(1)?,
+            artist: row.get(2)?,
+            album: row.get(3)?,
+            duration: row.get(4)?,
+            file_path: row.get(5)?,
+            original_path: row.get(6)?,
+            is_liked: row.get::<_, i32>(7)? == 1,
+            added_at: row.get(8)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(|e| e.to_string())?;
+
+    Ok(songs)
+}
+
+#[tauri::command]
+pub fn create_playlist(
+    state: tauri::State<Database>,
+    name: String,
+) -> Result<i64, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    
+    conn.execute(
+        "INSERT INTO playlists (name, created_at) VALUES (?1, ?2)",
+        params![name, Utc::now().timestamp_millis()],
+    ).map_err(|e| e.to_string())?;
+
+    Ok(conn.last_insert_rowid())
+}
+
+#[tauri::command]
+pub fn get_playlists(state: tauri::State<Database>) -> Result<Vec<Playlist>, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    
+    let mut stmt = conn.prepare(
+        "SELECT id, name, created_at FROM playlists ORDER BY name"
+    ).map_err(|e| e.to_string())?;
+
+    let playlists = stmt.query_map([], |row| {
+        Ok(Playlist {
+            id: Some(row.get(0)?),
+            name: row.get(1)?,
+            created_at: row.get(2)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(|e| e.to_string())?;
+
+    Ok(playlists)
+}
+
+#[tauri::command]
+pub fn add_song_to_playlist(
+    state: tauri::State<Database>,
+    playlist_id: i64,
+    song_id: i64,
+) -> Result<(), String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    
+    // Get max order index
+    let max_order: i32 = conn.query_row(
+        "SELECT COALESCE(MAX(order_index), -1) FROM playlist_songs WHERE playlist_id = ?1",
+        params![playlist_id],
+        |row| row.get(0),
+    ).unwrap_or(-1);
+
+    conn.execute(
+        "INSERT INTO playlist_songs (playlist_id, song_id, order_index) VALUES (?1, ?2, ?3)",
+        params![playlist_id, song_id, max_order + 1],
+    ).map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_playlist_songs(
+    state: tauri::State<Database>,
+    playlist_id: i64,
+) -> Result<Vec<Song>, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    
+    let mut stmt = conn.prepare(
+        "SELECT s.id, s.title, s.artist, s.album, s.duration, s.file_path, s.original_path, s.is_liked, s.added_at
+         FROM songs s
+         JOIN playlist_songs ps ON s.id = ps.song_id
+         WHERE ps.playlist_id = ?1
+         ORDER BY ps.order_index"
+    ).map_err(|e| e.to_string())?;
+
+    let songs = stmt.query_map(params![playlist_id], |row| {
+        Ok(Song {
+            id: Some(row.get(0)?),
+            title: row.get(1)?,
+            artist: row.get(2)?,
+            album: row.get(3)?,
+            duration: row.get(4)?,
+            file_path: row.get(5)?,
+            original_path: row.get(6)?,
+            is_liked: row.get::<_, i32>(7)? == 1,
+            added_at: row.get(8)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(|e| e.to_string())?;
+
+    Ok(songs)
+}
+
+#[tauri::command]
+pub fn toggle_like_song(
+    state: tauri::State<Database>,
+    song_id: i64,
+) -> Result<bool, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    
+    // Get current status
+    let is_liked: bool = conn.query_row(
+        "SELECT is_liked FROM songs WHERE id = ?1",
+        params![song_id],
+        |row| row.get::<_, i32>(0),
+    ).map(|v| v == 1).unwrap_or(false);
+
+    let new_status = !is_liked;
+
+    conn.execute(
+        "UPDATE songs SET is_liked = ?1 WHERE id = ?2",
+        params![if new_status { 1 } else { 0 }, song_id],
+    ).map_err(|e| e.to_string())?;
+
+    Ok(new_status)
 }
 
 /// Initialize database path (called from main.rs)
